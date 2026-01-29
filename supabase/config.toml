@@ -1,0 +1,7 @@
+project_id = "yjweuxscjanuqjhqnjoa"
+
+[functions.generate-routine]
+verify_jwt = false
+
+[functions.analyze-ingredients]
+verify_jwt = false
