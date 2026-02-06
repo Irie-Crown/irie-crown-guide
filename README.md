@@ -1,73 +1,106 @@
-# Welcome to your Lovable project
+# Irie Crown Hair Intelligence™
 
-## Project info
+AI-powered personalized hair routine generator and ingredient compatibility tracker for textured hair (3A–4C curl patterns).
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## What It Does
 
-## How can I edit this code?
+- **Personalized Routines** — Complete a guided hair profile questionnaire and receive an AI-generated wash day, weekly, and monthly routine tailored to your hair type, porosity, health, climate, and lifestyle.
+- **Ingredient Checker** — Paste any product's ingredient list and get an instant AI analysis flagging what's safe, what needs caution, and what to avoid for textured hair.
+- **Dashboard** — Save, view, and regenerate your routines. Track your hair profile over time.
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui |
+| Backend | Lovable Cloud (Supabase) — Auth, PostgreSQL, Edge Functions |
+| AI | Google Gemini via Lovable AI Gateway |
+| Styling | Custom design system with Playfair Display + DM Sans |
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Project Structure
 
-Changes made via Lovable will be committed automatically to this repo.
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/              # shadcn/ui primitives
+│   ├── questionnaire/   # Multi-step form components
+│   └── ProtectedRoute.tsx
+├── hooks/               # Custom React hooks (useAuth, etc.)
+├── pages/               # Route-level page components
+│   ├── Landing.tsx       # Public landing page
+│   ├── Auth.tsx          # Login / Sign up
+│   ├── Questionnaire.tsx # 7-step hair profile intake
+│   ├── Results.tsx       # AI-generated routine display
+│   ├── Dashboard.tsx     # User dashboard
+│   └── IngredientChecker.tsx
+├── integrations/        # Auto-generated Supabase client & types
+└── assets/              # Images and static assets
 
-**Use your preferred IDE**
+supabase/
+├── functions/
+│   ├── generate-routine/    # AI routine generation (authenticated)
+│   └── analyze-ingredients/ # AI ingredient analysis (authenticated)
+└── config.toml
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Getting Started
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Prerequisites
 
-Follow these steps:
+- [Node.js](https://nodejs.org/) v18+ (or [Bun](https://bun.sh/))
+- A Lovable account (backend is managed via Lovable Cloud)
+
+### Local Development
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Clone the repository
 git clone <YOUR_GIT_URL>
+cd irie-crown-hair-intelligence
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Install dependencies
+npm install
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the dev server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The app will be available at `http://localhost:5173`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Environment Variables
 
-**Use GitHub Codespaces**
+The `.env` file is auto-managed by Lovable Cloud and contains only **publishable** keys:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+| Variable | Description |
+|----------|-------------|
+| `VITE_SUPABASE_URL` | Backend API URL |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Public anon key (safe for frontend) |
+| `VITE_SUPABASE_PROJECT_ID` | Project identifier |
 
-## What technologies are used for this project?
+Private secrets (API keys, service role key) are stored securely in Lovable Cloud and only accessible from Edge Functions.
 
-This project is built with:
+## Security
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **Row Level Security (RLS)** enabled on all tables — users can only access their own data
+- **JWT authentication** enforced on all Edge Functions
+- **Protected routes** — unauthenticated users are redirected to `/auth`
+- **No private keys** in frontend code or version control
+- **WCAG AA compliant** color contrast throughout
 
-## How can I deploy this project?
+## Database Schema
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+| Table | Purpose |
+|-------|---------|
+| `profiles` | User display name, email, avatar |
+| `hair_profiles` | Complete hair questionnaire responses |
+| `routines` | AI-generated personalized routines |
+| `ingredient_checks` | Saved ingredient analysis results |
 
-## Can I connect a custom domain to my Lovable project?
+## Deployment
 
-Yes, you can!
+The app is deployed via Lovable's publish feature. Backend changes (Edge Functions, migrations) deploy automatically. Frontend changes require clicking **Publish → Update**.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+**Live URL:** [irie-crown-ai.lovable.app](https://irie-crown-ai.lovable.app)
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## License
+
+Private project. All rights reserved.
