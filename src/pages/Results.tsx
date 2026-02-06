@@ -56,15 +56,10 @@ export default function Results() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      navigate('/auth');
-      return;
-    }
-
     if (user) {
       fetchData();
     }
-  }, [user, loading, isAuthenticated, navigate]);
+  }, [user]);
 
   const fetchData = async () => {
     if (!user) return;
