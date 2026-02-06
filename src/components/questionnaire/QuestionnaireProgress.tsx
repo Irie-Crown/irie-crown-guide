@@ -1,3 +1,4 @@
+import React from 'react';
 import { Check } from 'lucide-react';
 
 interface QuestionnaireProgressProps {
@@ -6,7 +7,7 @@ interface QuestionnaireProgressProps {
   stepLabels: string[];
 }
 
-export function QuestionnaireProgress({
+export const QuestionnaireProgress = React.memo(function QuestionnaireProgress({
   currentStep,
   totalSteps,
   stepLabels,
@@ -59,4 +60,4 @@ export function QuestionnaireProgress({
       </div>
     </div>
   );
-}
+});

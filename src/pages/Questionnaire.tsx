@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -205,14 +205,14 @@ export default function Questionnaire() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const updateField = <K extends keyof HairProfileData>(
+  const updateField = useCallback(<K extends keyof HairProfileData>(
     field: K,
     value: HairProfileData[K]
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  }, []);
 
-  const canProceed = () => {
+  const canProceedValue = useMemo(() => {
     switch (step) {
       case 0:
         return formData.hair_type !== '';
@@ -243,19 +243,15 @@ export default function Questionnaire() {
       default:
         return true;
     }
-  };
+  }, [step, formData]);
 
-  const handleNext = () => {
-    if (step < stepLabels.length - 1) {
-      setStep(step + 1);
-    }
-  };
+  const handleNext = useCallback(() => {
+    setStep((s) => (s < stepLabels.length - 1 ? s + 1 : s));
+  }, []);
 
-  const handleBack = () => {
-    if (step > 0) {
-      setStep(step - 1);
-    }
-  };
+  const handleBack = useCallback(() => {
+    setStep((s) => (s > 0 ? s - 1 : s));
+  }, []);
 
   const handleSubmit = async () => {
     if (!user) {
@@ -617,7 +613,7 @@ export default function Questionnaire() {
             <Button
               variant="hero"
               onClick={handleNext}
-              disabled={!canProceed()}
+              disabled={!canProceedValue}
               className="gap-2"
             >
               Continue
@@ -627,7 +623,7 @@ export default function Questionnaire() {
             <Button
               variant="hero"
               onClick={handleSubmit}
-              disabled={!canProceed() || isSubmitting}
+              disabled={!canProceedValue || isSubmitting}
               className="gap-2"
             >
               {isSubmitting ? (
