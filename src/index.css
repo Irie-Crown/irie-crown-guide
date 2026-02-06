@@ -34,8 +34,8 @@
     --muted: 30 15% 92%;
     --muted-foreground: 25 20% 38%;
 
-    /* Accent: Warm Terracotta - earthy energy */
-    --accent: 15 55% 55%;
+    /* Accent: Warm Terracotta - darkened for WCAG AA */
+    --accent: 15 55% 42%;
     --accent-foreground: 40 33% 98%;
 
     --destructive: 0 65% 50%;
@@ -54,14 +54,14 @@
     --crown-gold-dark: 30 60% 32%;
     --forest: 155 35% 30%;
     --forest-light: 155 30% 45%;
-    --terracotta: 15 55% 55%;
-    --terracotta-light: 15 60% 75%;
+    --terracotta: 15 55% 42%;
+    --terracotta-light: 15 60% 65%;
     --cream: 40 33% 98%;
     --warm-brown: 25 30% 15%;
     --soft-brown: 25 20% 35%;
 
     /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(32 65% 55% / 0.9) 0%, hsl(15 55% 55% / 0.8) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(32 65% 42% / 0.9) 0%, hsl(15 55% 42% / 0.8) 100%);
     --gradient-card: linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 33% 96%) 100%);
     --gradient-gold: linear-gradient(135deg, hsl(35 70% 55%) 0%, hsl(32 65% 42%) 50%, hsl(30 60% 32%) 100%);
 
