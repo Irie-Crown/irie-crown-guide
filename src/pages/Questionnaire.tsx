@@ -278,24 +278,33 @@ export default function Questionnaire() {
       allergies: allergiesArray,
     };
 
-    const { error } = await supabase.from('hair_profiles').insert(profileData);
+    try {
+      const { error } = await supabase.from('hair_profiles').insert(profileData);
 
-    if (error) {
+      if (error) {
+        toast({
+          title: 'Error saving profile',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+
       toast({
-        title: 'Error saving profile',
-        description: error.message,
+        title: 'Profile saved!',
+        description: 'Generating your personalized routine...',
+      });
+
+      navigate('/results');
+    } catch (error) {
+      toast({
+        title: 'Something went wrong',
+        description: 'Could not save your profile. Please check your connection and try again.',
         variant: 'destructive',
       });
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-
-    toast({
-      title: 'Profile saved!',
-      description: 'Generating your personalized routine...',
-    });
-
-    navigate('/results');
   };
 
   if (loading) {

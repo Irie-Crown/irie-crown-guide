@@ -59,32 +59,39 @@ export default function Dashboard() {
 
     setIsLoading(true);
 
-    // Parallel fetch — only select needed fields
-    const [profileResult, routinesResult, hairProfileResult] = await Promise.all([
-      supabase
-        .from('profiles')
-        .select('id, full_name, email')
-        .eq('user_id', user.id)
-        .maybeSingle(),
-      supabase
-        .from('routines')
-        .select('id, routine_name, created_at, is_active')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false }),
-      supabase
-        .from('hair_profiles')
-        .select('id, hair_type, hair_texture, created_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-    ]);
+    try {
+      const [profileResult, routinesResult, hairProfileResult] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .eq('user_id', user.id)
+          .maybeSingle(),
+        supabase
+          .from('routines')
+          .select('id, routine_name, created_at, is_active')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('hair_profiles')
+          .select('id, hair_type, hair_texture, created_at')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
 
-    if (profileResult.data) setProfile(profileResult.data);
-    if (routinesResult.data) setRoutines(routinesResult.data);
-    if (hairProfileResult.data) setHairProfile(hairProfileResult.data);
-
-    setIsLoading(false);
+      if (profileResult.data) setProfile(profileResult.data);
+      if (routinesResult.data) setRoutines(routinesResult.data);
+      if (hairProfileResult.data) setHairProfile(hairProfileResult.data);
+    } catch (error) {
+      toast({
+        title: 'Failed to load dashboard',
+        description: 'Please check your connection and try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSignOut = async () => {
