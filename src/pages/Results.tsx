@@ -66,42 +66,49 @@ export default function Results() {
 
     setIsLoading(true);
 
-    // Parallel fetch — hair profile + active routine
-    const [profileResult, routineResult] = await Promise.all([
-      supabase
-        .from('hair_profiles')
-        .select('id, hair_type, hair_texture, hair_porosity, hair_density, hair_length, hair_concerns, scalp_condition, scalp_concerns, health_conditions, allergies, hormonal_status, climate, water_type, sun_exposure, exercise_frequency, heat_styling_frequency, budget_preference, product_preferences')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      supabase
-        .from('routines')
-        .select('id, routine_name, wash_day_routine, weekly_routine, monthly_routine, dos, donts, ingredient_guidance, educational_tips, created_at')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-    ]);
+    try {
+      const [profileResult, routineResult] = await Promise.all([
+        supabase
+          .from('hair_profiles')
+          .select('id, hair_type, hair_texture, hair_porosity, hair_density, hair_length, hair_concerns, scalp_condition, scalp_concerns, health_conditions, allergies, hormonal_status, climate, water_type, sun_exposure, exercise_frequency, heat_styling_frequency, budget_preference, product_preferences')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from('routines')
+          .select('id, routine_name, wash_day_routine, weekly_routine, monthly_routine, dos, donts, ingredient_guidance, educational_tips, created_at')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
 
-    if (!profileResult.data) {
+      if (!profileResult.data) {
+        toast({
+          title: 'No profile found',
+          description: 'Please complete the hair profile questionnaire first.',
+        });
+        navigate('/questionnaire');
+        return;
+      }
+
+      setHairProfile(profileResult.data);
+
+      if (routineResult.data) {
+        setRoutine(routineResult.data);
+        setIsLoading(false);
+      } else {
+        await generateRoutine(profileResult.data);
+      }
+    } catch (error) {
       toast({
-        title: 'No profile found',
-        description: 'Please complete the hair profile questionnaire first.',
+        title: 'Failed to load results',
+        description: 'Please check your connection and try again.',
+        variant: 'destructive',
       });
-      navigate('/questionnaire');
-      return;
-    }
-
-    setHairProfile(profileResult.data);
-
-    if (routineResult.data) {
-      setRoutine(routineResult.data);
       setIsLoading(false);
-    } else {
-      // Generate new routine
-      await generateRoutine(profileResult.data);
     }
   };
 
@@ -163,13 +170,20 @@ export default function Results() {
   const regenerateRoutine = async () => {
     if (!hairProfile || !user) return;
 
-    // Deactivate old routines
-    await supabase
-      .from('routines')
-      .update({ is_active: false })
-      .eq('user_id', user.id);
+    try {
+      await supabase
+        .from('routines')
+        .update({ is_active: false })
+        .eq('user_id', user.id);
 
-    await generateRoutine(hairProfile);
+      await generateRoutine(hairProfile);
+    } catch (error) {
+      toast({
+        title: 'Regeneration failed',
+        description: 'Could not regenerate your routine. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   if (loading || isLoading) {
