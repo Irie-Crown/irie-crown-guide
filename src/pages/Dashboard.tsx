@@ -59,40 +59,30 @@ export default function Dashboard() {
 
     setIsLoading(true);
 
-    // Fetch profile
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
+    // Parallel fetch — only select needed fields
+    const [profileResult, routinesResult, hairProfileResult] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .eq('user_id', user.id)
+        .maybeSingle(),
+      supabase
+        .from('routines')
+        .select('id, routine_name, created_at, is_active')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('hair_profiles')
+        .select('id, hair_type, hair_texture, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
 
-    if (profileData) {
-      setProfile(profileData);
-    }
-
-    // Fetch routines
-    const { data: routinesData } = await supabase
-      .from('routines')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (routinesData) {
-      setRoutines(routinesData);
-    }
-
-    // Fetch hair profile
-    const { data: hairProfileData } = await supabase
-      .from('hair_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (hairProfileData) {
-      setHairProfile(hairProfileData);
-    }
+    if (profileResult.data) setProfile(profileResult.data);
+    if (routinesResult.data) setRoutines(routinesResult.data);
+    if (hairProfileResult.data) setHairProfile(hairProfileResult.data);
 
     setIsLoading(false);
   };
