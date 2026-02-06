@@ -15,6 +15,7 @@ import {
   Plus,
   ChevronRight,
   Crown,
+  CheckCircle,
 } from 'lucide-react';
 
 interface Profile {
@@ -282,7 +283,8 @@ export default function Dashboard() {
                     </div>
                     <div className="flex items-center gap-2">
                       {routine.is_active && (
-                        <span className="px-2 py-1 bg-secondary/20 text-secondary rounded-full text-xs font-medium">
+                        <span className="px-2 py-1 bg-secondary/20 text-secondary rounded-full text-xs font-medium flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3" />
                           Active
                         </span>
                       )}
