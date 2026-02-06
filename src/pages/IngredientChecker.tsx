@@ -205,11 +205,14 @@ export default function IngredientChecker() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="font-display">Analysis Results</CardTitle>
                   <span
-                    className={`px-4 py-1 rounded-full text-sm font-semibold capitalize ${getRatingColor(
+                    className={`px-4 py-1 rounded-full text-sm font-semibold flex items-center gap-1.5 ${getRatingColor(
                       result.overallRating
                     )}`}
                   >
-                    {result.overallRating}
+                    {result.overallRating === 'good' && <CheckCircle className="h-4 w-4" />}
+                    {result.overallRating === 'fair' && <AlertCircle className="h-4 w-4" />}
+                    {result.overallRating === 'poor' && <AlertTriangle className="h-4 w-4" />}
+                    {result.overallRating === 'good' ? 'Good' : result.overallRating === 'fair' ? 'Fair' : 'Poor'}
                   </span>
                 </div>
                 <CardDescription>{result.summary}</CardDescription>
