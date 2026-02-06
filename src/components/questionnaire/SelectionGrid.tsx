@@ -1,3 +1,4 @@
+import React from 'react';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -16,7 +17,7 @@ interface SelectionGridProps {
   columns?: 2 | 3 | 4;
 }
 
-export function SelectionGrid({
+export const SelectionGrid = React.memo(function SelectionGrid({
   options,
   value,
   onChange,
@@ -92,4 +93,4 @@ export function SelectionGrid({
       })}
     </div>
   );
-}
+});

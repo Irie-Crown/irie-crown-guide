@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 
 interface QuestionCardProps {
   title: string;
@@ -6,7 +6,7 @@ interface QuestionCardProps {
   children: ReactNode;
 }
 
-export function QuestionCard({ title, description, children }: QuestionCardProps) {
+export const QuestionCard = React.memo(function QuestionCard({ title, description, children }: QuestionCardProps) {
   return (
     <div className="space-y-6">
       <div className="text-center md:text-left">
@@ -20,4 +20,4 @@ export function QuestionCard({ title, description, children }: QuestionCardProps
       <div className="mt-6">{children}</div>
     </div>
   );
-}
+});
