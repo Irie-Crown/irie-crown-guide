@@ -66,16 +66,26 @@ export default function Results() {
 
     setIsLoading(true);
 
-    // Fetch hair profile
-    const { data: profileData, error: profileError } = await supabase
-      .from('hair_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
+    // Parallel fetch — hair profile + active routine
+    const [profileResult, routineResult] = await Promise.all([
+      supabase
+        .from('hair_profiles')
+        .select('id, hair_type, hair_texture, hair_porosity, hair_density, hair_length, hair_concerns, scalp_condition, scalp_concerns, health_conditions, allergies, hormonal_status, climate, water_type, sun_exposure, exercise_frequency, heat_styling_frequency, budget_preference, product_preferences')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from('routines')
+        .select('id, routine_name, wash_day_routine, weekly_routine, monthly_routine, dos, donts, ingredient_guidance, educational_tips, created_at')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
 
-    if (profileError || !profileData) {
+    if (!profileResult.data) {
       toast({
         title: 'No profile found',
         description: 'Please complete the hair profile questionnaire first.',
@@ -84,24 +94,14 @@ export default function Results() {
       return;
     }
 
-    setHairProfile(profileData);
+    setHairProfile(profileResult.data);
 
-    // Check for existing routine
-    const { data: routineData } = await supabase
-      .from('routines')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (routineData) {
-      setRoutine(routineData);
+    if (routineResult.data) {
+      setRoutine(routineResult.data);
       setIsLoading(false);
     } else {
       // Generate new routine
-      await generateRoutine(profileData);
+      await generateRoutine(profileResult.data);
     }
   };
 
