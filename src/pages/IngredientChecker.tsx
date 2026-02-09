@@ -44,10 +44,31 @@ export default function IngredientChecker() {
   const { toast } = useToast();
 
   const handleAnalyze = async () => {
-    if (!ingredientsList.trim()) {
+    const trimmedIngredients = ingredientsList.trim();
+    const trimmedName = productName.trim();
+
+    if (!trimmedIngredients) {
       toast({
         title: 'Enter ingredients',
         description: 'Please paste or type the ingredient list to analyze.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (trimmedIngredients.length > 5000) {
+      toast({
+        title: 'Input too long',
+        description: 'Please limit the ingredient list to 5,000 characters.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (trimmedName.length > 200) {
+      toast({
+        title: 'Product name too long',
+        description: 'Please limit the product name to 200 characters.',
         variant: 'destructive',
       });
       return;
@@ -59,8 +80,8 @@ export default function IngredientChecker() {
     try {
       const response = await supabase.functions.invoke('analyze-ingredients', {
         body: {
-          productName: productName.trim() || 'Unknown Product',
-          ingredients: ingredientsList.trim(),
+          productName: trimmedName || 'Unknown Product',
+          ingredients: trimmedIngredients,
         },
       });
 

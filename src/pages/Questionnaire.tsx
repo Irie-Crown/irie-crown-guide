@@ -266,16 +266,21 @@ export default function Questionnaire() {
 
     setIsSubmitting(true);
 
-    // Parse allergies from input
-    const allergiesArray = allergiesInput
+    // Parse and validate allergies from input
+    const sanitizedAllergies = allergiesInput.slice(0, 1000);
+    const allergiesArray = sanitizedAllergies
       .split(',')
-      .map((a) => a.trim())
-      .filter((a) => a.length > 0);
+      .map((a) => a.trim().slice(0, 100))
+      .filter((a) => a.length > 0)
+      .slice(0, 20);
+
+    const sanitizedMedications = formData.medications.trim().slice(0, 500);
 
     const profileData = {
       ...formData,
       user_id: user.id,
       allergies: allergiesArray,
+      medications: sanitizedMedications,
     };
 
     try {
