@@ -127,6 +127,9 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex flex-col">
+      <a href="#main-content" className="skip-to-main">
+        Skip to main content
+      </a>
       {/* Header */}
       <header className="p-6">
         <Button
@@ -140,7 +143,7 @@ export default function Auth() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-4 py-8">
+      <main id="main-content" className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="text-center mb-8">
@@ -242,7 +245,7 @@ export default function Auth() {
                     setIsLogin(!isLogin);
                     setErrors({});
                   }}
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md px-2 py-1"
                 >
                   {isLogin
                     ? "Don't have an account? Sign up"
