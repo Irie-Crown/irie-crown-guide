@@ -120,6 +120,9 @@ export default function IngredientChecker() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
+      <a href="#main-content" className="skip-to-main">
+        Skip to main content
+      </a>
       {/* Header */}
       <header className="border-b border-border bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -143,7 +146,7 @@ export default function IngredientChecker() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main id="main-content" className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Input Section */}
         <Card className="mb-8">
           <CardHeader>
