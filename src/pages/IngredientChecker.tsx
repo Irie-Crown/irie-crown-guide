@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { IngredientAnalysisSkeleton } from '@/components/skeletons/IngredientAnalysisSkeleton';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -196,8 +197,11 @@ export default function IngredientChecker() {
           </CardContent>
         </Card>
 
+        {/* Analysis in progress */}
+        {isAnalyzing && <IngredientAnalysisSkeleton />}
+
         {/* Results Section */}
-        {result && (
+        {result && !isAnalyzing && (
           <div className="space-y-6 animate-fade-in">
             {/* Overall Rating */}
             <Card>

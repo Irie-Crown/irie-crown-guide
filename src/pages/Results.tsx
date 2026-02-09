@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ResultsSkeleton } from '@/components/skeletons/ResultsSkeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -187,16 +188,7 @@ export default function Results() {
   };
 
   if (loading || isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">
-            {isGenerating ? 'Creating your personalized routine...' : 'Loading...'}
-          </p>
-        </div>
-      </div>
-    );
+    return <ResultsSkeleton isGenerating={isGenerating} />;
   }
 
   const renderRoutineSection = (data: unknown) => {
