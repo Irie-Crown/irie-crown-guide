@@ -117,6 +117,9 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
+      <a href="#main-content" className="skip-to-main">
+        Skip to main content
+      </a>
       {/* Header */}
       <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -135,7 +138,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-5xl">
+      <main id="main-content" className="container mx-auto px-4 py-8 max-w-5xl">
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="font-display text-3xl md:text-4xl font-semibold text-foreground mb-2">
@@ -148,8 +151,8 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <div className="grid md:grid-cols-3 gap-4 mb-8">
-          <Card
-            className="group cursor-pointer hover:shadow-medium transition-all hover:-translate-y-1 border-primary/20"
+          <button
+            className="group w-full text-left cursor-pointer hover:shadow-medium transition-all hover:-translate-y-1 border-primary/20 rounded-xl border bg-card p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             onClick={() => navigate(hasHairProfile ? '/results' : '/questionnaire')}
           >
             <CardContent className="pt-6">
@@ -170,10 +173,10 @@ export default function Dashboard() {
                 <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
             </CardContent>
-          </Card>
+          </button>
 
-          <Card
-            className="group cursor-pointer hover:shadow-medium transition-all hover:-translate-y-1"
+          <button
+            className="group w-full text-left cursor-pointer hover:shadow-medium transition-all hover:-translate-y-1 rounded-xl border bg-card p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             onClick={() => navigate('/ingredient-checker')}
           >
             <CardContent className="pt-6">
@@ -190,10 +193,10 @@ export default function Dashboard() {
                 <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-accent transition-colors" />
               </div>
             </CardContent>
-          </Card>
+          </button>
 
-          <Card
-            className="group cursor-pointer hover:shadow-medium transition-all hover:-translate-y-1"
+          <button
+            className="group w-full text-left cursor-pointer hover:shadow-medium transition-all hover:-translate-y-1 rounded-xl border bg-card p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             onClick={() => navigate('/questionnaire')}
           >
             <CardContent className="pt-6">
@@ -214,7 +217,7 @@ export default function Dashboard() {
                 <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-secondary transition-colors" />
               </div>
             </CardContent>
-          </Card>
+          </button>
         </div>
 
         {/* Hair Profile Summary */}
@@ -259,9 +262,9 @@ export default function Dashboard() {
             {routines.length > 0 ? (
               <div className="space-y-3">
                 {routines.map((routine) => (
-                  <div
+                  <button
                     key={routine.id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                    className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     onClick={() => navigate('/results')}
                   >
                     <div>
@@ -279,7 +282,7 @@ export default function Dashboard() {
                       )}
                       <ChevronRight className="h-5 w-5 text-muted-foreground" />
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             ) : (
