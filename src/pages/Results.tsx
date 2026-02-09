@@ -244,9 +244,18 @@ export default function Results() {
             <Button variant="ghost" onClick={() => navigate('/dashboard')}>
               Dashboard
             </Button>
-            <Button variant="outline" onClick={regenerateRoutine} className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Regenerate
+            <Button variant="outline" onClick={regenerateRoutine} disabled={isGenerating} className="gap-2">
+              {isGenerating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Regenerating...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4" />
+                  Regenerate
+                </>
+              )}
             </Button>
           </div>
         </div>
