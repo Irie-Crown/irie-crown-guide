@@ -44,6 +44,9 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-background">
+      <a href="#main-content" className="skip-to-main">
+        Skip to main content
+      </a>
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -75,7 +78,7 @@ export default function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden">
+      <section id="main-content" className="pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
