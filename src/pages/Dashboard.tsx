@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { RecommendationsWidget } from '@/components/scoring/RecommendationsWidget';
 import {
   Sparkles,
   LogOut,
@@ -19,6 +20,7 @@ import {
   Crown,
   CheckCircle,
   Shield,
+  ShoppingBag,
 } from 'lucide-react';
 
 interface Profile {
@@ -159,7 +161,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid md:grid-cols-3 gap-4 mb-8">
+        <div className="grid md:grid-cols-4 gap-4 mb-8">
           <button
             className="group w-full text-left cursor-pointer hover:shadow-medium transition-all hover:-translate-y-1 border-primary/20 rounded-xl border bg-card p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             onClick={() => navigate(hasHairProfile ? '/results' : '/questionnaire')}
@@ -227,6 +229,26 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </button>
+
+          <button
+            className="group w-full text-left cursor-pointer hover:shadow-medium transition-all hover:-translate-y-1 rounded-xl border bg-card p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            onClick={() => navigate('/products')}
+          >
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <ShoppingBag className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">Browse Products</h3>
+                    <p className="text-sm text-muted-foreground">Find your perfect match</p>
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              </div>
+            </CardContent>
+          </button>
         </div>
 
         {/* Hair Profile Summary */}
@@ -259,6 +281,11 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         )}
+
+        {/* Top Product Matches */}
+        <div className="mb-8">
+          <RecommendationsWidget />
+        </div>
 
         {/* Saved Routines */}
         <Card>

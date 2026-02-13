@@ -12,6 +12,8 @@ import Questionnaire from "./pages/Questionnaire";
 import Results from "./pages/Results";
 import Dashboard from "./pages/Dashboard";
 import IngredientChecker from "./pages/IngredientChecker";
+import ProductCatalog from "./pages/ProductCatalog";
+import ProductDetail from "./pages/ProductDetail";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminProductForm from "./pages/admin/AdminProductForm";
 import NotFound from "./pages/NotFound";
@@ -32,6 +34,8 @@ const App = () => (
           <Route path="/results" element={<ProtectedRoute><Results /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/ingredient-checker" element={<ProtectedRoute><IngredientChecker /></ProtectedRoute>} />
+          <Route path="/products" element={<ProtectedRoute><ProductCatalog /></ProtectedRoute>} />
+          <Route path="/products/:id" element={<ProtectedRoute><ProductDetail /></ProtectedRoute>} />
           <Route path="/admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
           <Route path="/admin/products/new" element={<AdminRoute><AdminProductForm /></AdminRoute>} />
           <Route path="/admin/products/:id" element={<AdminRoute><AdminProductForm /></AdminRoute>} />
