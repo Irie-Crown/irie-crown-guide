@@ -27,7 +27,8 @@ export type Database = {
           hair_length: string
           hair_porosity: string
           hair_texture: string
-          hair_type: string
+          hair_type: string | null
+          hair_type_system: string | null
           health_conditions: string[] | null
           heat_styling_frequency: string
           hormonal_status: string | null
@@ -53,7 +54,8 @@ export type Database = {
           hair_length: string
           hair_porosity: string
           hair_texture: string
-          hair_type: string
+          hair_type?: string | null
+          hair_type_system?: string | null
           health_conditions?: string[] | null
           heat_styling_frequency: string
           hormonal_status?: string | null
@@ -79,7 +81,8 @@ export type Database = {
           hair_length?: string
           hair_porosity?: string
           hair_texture?: string
-          hair_type?: string
+          hair_type?: string | null
+          hair_type_system?: string | null
           health_conditions?: string[] | null
           heat_styling_frequency?: string
           hormonal_status?: string | null
