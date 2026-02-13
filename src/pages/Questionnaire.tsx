@@ -23,7 +23,7 @@ const stepLabels = [
 ];
 
 const hairTypeSystemOptions = [
-  { value: 'AndreWalker', label: 'Andre Walker System', description: 'Classify by curl pattern (1A–4C)' },
+  { value: 'AndreWalker', label: 'Curl Pattern', description: 'Classify by curl pattern (1A–4C)' },
   { value: 'Skip', label: 'Skip / I Don\'t Know', description: 'We\'ll use your other hair characteristics instead' },
 ];
 
@@ -389,7 +389,7 @@ export default function Questionnaire() {
             {formData.hair_type_system === 'AndreWalker' && (
               <QuestionCard
                 title="Select your curl pattern"
-                description="Choose the Andre Walker type that best matches your hair."
+                description="Choose the type that best matches your hair."
               >
                 <SelectionGrid
                   options={andreWalkerOptions}
