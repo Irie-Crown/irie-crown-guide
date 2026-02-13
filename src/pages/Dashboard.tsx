@@ -234,9 +234,15 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">
-                  {hairProfile.hair_type}
-                </span>
+                {hairProfile.hair_type ? (
+                  <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">
+                    {hairProfile.hair_type}
+                  </span>
+                ) : (
+                  <span className="px-3 py-1 bg-muted text-muted-foreground rounded-full text-sm">
+                    No curl pattern set
+                  </span>
+                )}
                 <span className="px-3 py-1 bg-secondary/20 text-secondary rounded-full text-sm font-medium">
                   {hairProfile.hair_texture} Texture
                 </span>

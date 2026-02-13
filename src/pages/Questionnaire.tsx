@@ -22,7 +22,18 @@ const stepLabels = [
   'Lifestyle',
 ];
 
-const hairTypeOptions = [
+const hairTypeSystemOptions = [
+  { value: 'AndreWalker', label: 'Andre Walker System', description: 'Classify by curl pattern (1A–4C)' },
+  { value: 'Skip', label: 'Skip / I Don\'t Know', description: 'We\'ll use your other hair characteristics instead' },
+];
+
+const andreWalkerOptions = [
+  { value: '1A', label: '1A', description: 'Stick-straight, fine' },
+  { value: '1B', label: '1B', description: 'Straight with slight body' },
+  { value: '1C', label: '1C', description: 'Straight with some wave' },
+  { value: '2A', label: '2A', description: 'Loose, gentle waves' },
+  { value: '2B', label: '2B', description: 'Defined S-shaped waves' },
+  { value: '2C', label: '2C', description: 'Deep waves, almost curly' },
   { value: '3A', label: '3A', description: 'Loose, big curls' },
   { value: '3B', label: '3B', description: 'Bouncy ringlets' },
   { value: '3C', label: '3C', description: 'Tight corkscrew curls' },
@@ -152,6 +163,7 @@ const productPreferenceOptions = [
 ];
 
 interface HairProfileData {
+  hair_type_system: string;
   hair_type: string;
   hair_texture: string;
   hair_porosity: string;
@@ -178,6 +190,7 @@ export default function Questionnaire() {
   const [step, setStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<HairProfileData>({
+    hair_type_system: '',
     hair_type: '',
     hair_texture: '',
     hair_porosity: '',
@@ -215,7 +228,7 @@ export default function Questionnaire() {
   const canProceedValue = useMemo(() => {
     switch (step) {
       case 0:
-        return formData.hair_type !== '';
+        return formData.hair_type_system === 'Skip' || (formData.hair_type_system === 'AndreWalker' && formData.hair_type !== '');
       case 1:
         return (
           formData.hair_texture !== '' &&
@@ -281,6 +294,8 @@ export default function Questionnaire() {
       user_id: user.id,
       allergies: allergiesArray,
       medications: sanitizedMedications,
+      hair_type_system: formData.hair_type_system === 'Skip' ? null : formData.hair_type_system,
+      hair_type: formData.hair_type_system === 'Skip' ? null : formData.hair_type,
     };
 
     try {
@@ -352,17 +367,39 @@ export default function Questionnaire() {
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Step 0: Hair Type */}
         {step === 0 && (
-          <QuestionCard
-            title="What's your hair type?"
-            description="Select the curl pattern that best describes your hair."
-          >
-            <SelectionGrid
-              options={hairTypeOptions}
-              value={formData.hair_type}
-              onChange={(v) => updateField('hair_type', v as string)}
-              columns={3}
-            />
-          </QuestionCard>
+          <div className="space-y-10">
+            <QuestionCard
+              title="How would you like to classify your hair?"
+              description="Choose a classification system, or skip if you're unsure."
+            >
+              <SelectionGrid
+                options={hairTypeSystemOptions}
+                value={formData.hair_type_system}
+                onChange={(v) => {
+                  const system = v as string;
+                  updateField('hair_type_system', system);
+                  if (system === 'Skip') {
+                    updateField('hair_type', '');
+                  }
+                }}
+                columns={2}
+              />
+            </QuestionCard>
+
+            {formData.hair_type_system === 'AndreWalker' && (
+              <QuestionCard
+                title="Select your curl pattern"
+                description="Choose the Andre Walker type that best matches your hair."
+              >
+                <SelectionGrid
+                  options={andreWalkerOptions}
+                  value={formData.hair_type}
+                  onChange={(v) => updateField('hair_type', v as string)}
+                  columns={4}
+                />
+              </QuestionCard>
+            )}
+          </div>
         )}
 
         {/* Step 1: Hair Details */}
