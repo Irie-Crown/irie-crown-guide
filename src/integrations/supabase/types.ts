@@ -17,43 +17,58 @@ export type Database = {
       compatibility_scores: {
         Row: {
           created_at: string
+          curl_definition_score: number | null
+          frizz_control_score: number | null
           goal_alignment_score: number | null
           hair_profile_id: string
           id: string
           ingredient_safety_score: number | null
+          moisture_score: number | null
           overall_score: number | null
           performance_score: number | null
           product_id: string
+          scalp_care_score: number | null
           score_breakdown: Json | null
           score_explanation: string | null
+          strength_repair_score: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          curl_definition_score?: number | null
+          frizz_control_score?: number | null
           goal_alignment_score?: number | null
           hair_profile_id: string
           id?: string
           ingredient_safety_score?: number | null
+          moisture_score?: number | null
           overall_score?: number | null
           performance_score?: number | null
           product_id: string
+          scalp_care_score?: number | null
           score_breakdown?: Json | null
           score_explanation?: string | null
+          strength_repair_score?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          curl_definition_score?: number | null
+          frizz_control_score?: number | null
           goal_alignment_score?: number | null
           hair_profile_id?: string
           id?: string
           ingredient_safety_score?: number | null
+          moisture_score?: number | null
           overall_score?: number | null
           performance_score?: number | null
           product_id?: string
+          scalp_care_score?: number | null
           score_breakdown?: Json | null
           score_explanation?: string | null
+          strength_repair_score?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -188,6 +203,111 @@ export type Database = {
           product_name?: string | null
           safe_ingredients?: Json | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      ingredient_rules: {
+        Row: {
+          breakage_impact: number
+          buildup_risk: number
+          category: string | null
+          color_treated_impact: number
+          confidence: number
+          created_at: string
+          curl_definition_score: number
+          dandruff_impact: number
+          density_medium_score: number
+          density_thick_score: number
+          density_thin_score: number
+          dry_climate_modifier: number
+          drying_risk: number
+          frizz_control_score: number
+          heat_damage_impact: number
+          humid_climate_modifier: number
+          id: string
+          ingredient_name: string
+          irritation_risk: number
+          is_verified: boolean
+          moisture_score: number
+          normalized_name: string
+          notes: string | null
+          porosity_high_score: number
+          porosity_low_score: number
+          porosity_medium_score: number
+          protein_score: number
+          scalp_health_score: number
+          source: string
+          thinning_impact: number
+          updated_at: string
+          verified_by: string | null
+        }
+        Insert: {
+          breakage_impact?: number
+          buildup_risk?: number
+          category?: string | null
+          color_treated_impact?: number
+          confidence?: number
+          created_at?: string
+          curl_definition_score?: number
+          dandruff_impact?: number
+          density_medium_score?: number
+          density_thick_score?: number
+          density_thin_score?: number
+          dry_climate_modifier?: number
+          drying_risk?: number
+          frizz_control_score?: number
+          heat_damage_impact?: number
+          humid_climate_modifier?: number
+          id?: string
+          ingredient_name: string
+          irritation_risk?: number
+          is_verified?: boolean
+          moisture_score?: number
+          normalized_name: string
+          notes?: string | null
+          porosity_high_score?: number
+          porosity_low_score?: number
+          porosity_medium_score?: number
+          protein_score?: number
+          scalp_health_score?: number
+          source?: string
+          thinning_impact?: number
+          updated_at?: string
+          verified_by?: string | null
+        }
+        Update: {
+          breakage_impact?: number
+          buildup_risk?: number
+          category?: string | null
+          color_treated_impact?: number
+          confidence?: number
+          created_at?: string
+          curl_definition_score?: number
+          dandruff_impact?: number
+          density_medium_score?: number
+          density_thick_score?: number
+          density_thin_score?: number
+          dry_climate_modifier?: number
+          drying_risk?: number
+          frizz_control_score?: number
+          heat_damage_impact?: number
+          humid_climate_modifier?: number
+          id?: string
+          ingredient_name?: string
+          irritation_risk?: number
+          is_verified?: boolean
+          moisture_score?: number
+          normalized_name?: string
+          notes?: string | null
+          porosity_high_score?: number
+          porosity_low_score?: number
+          porosity_medium_score?: number
+          protein_score?: number
+          scalp_health_score?: number
+          source?: string
+          thinning_impact?: number
+          updated_at?: string
+          verified_by?: string | null
         }
         Relationships: []
       }
