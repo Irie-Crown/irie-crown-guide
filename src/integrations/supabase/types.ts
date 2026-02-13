@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      compatibility_scores: {
+        Row: {
+          created_at: string
+          goal_alignment_score: number | null
+          hair_profile_id: string
+          id: string
+          ingredient_safety_score: number | null
+          overall_score: number | null
+          performance_score: number | null
+          product_id: string
+          score_breakdown: Json | null
+          score_explanation: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          goal_alignment_score?: number | null
+          hair_profile_id: string
+          id?: string
+          ingredient_safety_score?: number | null
+          overall_score?: number | null
+          performance_score?: number | null
+          product_id: string
+          score_breakdown?: Json | null
+          score_explanation?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          goal_alignment_score?: number | null
+          hair_profile_id?: string
+          id?: string
+          ingredient_safety_score?: number | null
+          overall_score?: number | null
+          performance_score?: number | null
+          product_id?: string
+          score_breakdown?: Json | null
+          score_explanation?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compatibility_scores_hair_profile_id_fkey"
+            columns: ["hair_profile_id"]
+            isOneToOne: false
+            referencedRelation: "hair_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compatibility_scores_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hair_profiles: {
         Row: {
           allergies: string[] | null
@@ -131,6 +191,244 @@ export type Database = {
         }
         Relationships: []
       }
+      product_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          pathway_id: string | null
+          product_id: string
+          retailer: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          pathway_id?: string | null
+          product_id: string
+          retailer?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          pathway_id?: string | null
+          product_id?: string
+          retailer?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_events_pathway_id_fkey"
+            columns: ["pathway_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_pathways"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_feedback: {
+        Row: {
+          created_at: string
+          effectiveness_rating: number | null
+          id: string
+          metadata: Json | null
+          outcome_tags: Json | null
+          product_id: string
+          rating: number | null
+          review_text: string | null
+          updated_at: string
+          user_id: string
+          would_repurchase: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          effectiveness_rating?: number | null
+          id?: string
+          metadata?: Json | null
+          outcome_tags?: Json | null
+          product_id: string
+          rating?: number | null
+          review_text?: string | null
+          updated_at?: string
+          user_id: string
+          would_repurchase?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          effectiveness_rating?: number | null
+          id?: string
+          metadata?: Json | null
+          outcome_tags?: Json | null
+          product_id?: string
+          rating?: number | null
+          review_text?: string | null
+          updated_at?: string
+          user_id?: string
+          would_repurchase?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_feedback_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_ingredients: {
+        Row: {
+          admin_notes: string | null
+          compatibility_tags: Json | null
+          created_at: string
+          formulation_characteristics: Json | null
+          id: string
+          is_verified: boolean
+          moisture_protein_balance: string | null
+          parsed_ingredients: Json | null
+          performance_tags: Json | null
+          product_id: string
+          raw_ingredients_text: string | null
+          safety_flags: Json | null
+          scalp_friendliness: string | null
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+          weight_richness: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          compatibility_tags?: Json | null
+          created_at?: string
+          formulation_characteristics?: Json | null
+          id?: string
+          is_verified?: boolean
+          moisture_protein_balance?: string | null
+          parsed_ingredients?: Json | null
+          performance_tags?: Json | null
+          product_id: string
+          raw_ingredients_text?: string | null
+          safety_flags?: Json | null
+          scalp_friendliness?: string | null
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          weight_richness?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          compatibility_tags?: Json | null
+          created_at?: string
+          formulation_characteristics?: Json | null
+          id?: string
+          is_verified?: boolean
+          moisture_protein_balance?: string | null
+          parsed_ingredients?: Json | null
+          performance_tags?: Json | null
+          product_id?: string
+          raw_ingredients_text?: string | null
+          safety_flags?: Json | null
+          scalp_friendliness?: string | null
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          weight_richness?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_ingredients_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          auto_update_enabled: boolean
+          brand: string | null
+          canonical_id: string | null
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          image_urls: string[] | null
+          is_first_party: boolean
+          is_internal: boolean
+          is_manual_entry: boolean
+          is_preferred: boolean
+          manual_override_active: boolean
+          metadata: Json | null
+          name: string
+          product_type: string | null
+          status: string
+          subcategory: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          auto_update_enabled?: boolean
+          brand?: string | null
+          canonical_id?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_urls?: string[] | null
+          is_first_party?: boolean
+          is_internal?: boolean
+          is_manual_entry?: boolean
+          is_preferred?: boolean
+          manual_override_active?: boolean
+          metadata?: Json | null
+          name: string
+          product_type?: string | null
+          status?: string
+          subcategory?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          auto_update_enabled?: boolean
+          brand?: string | null
+          canonical_id?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_urls?: string[] | null
+          is_first_party?: boolean
+          is_internal?: boolean
+          is_manual_entry?: boolean
+          is_preferred?: boolean
+          manual_override_active?: boolean
+          metadata?: Json | null
+          name?: string
+          product_type?: string | null
+          status?: string
+          subcategory?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -160,6 +458,124 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      purchase_pathways: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          is_primary: boolean
+          label: string | null
+          metadata: Json | null
+          pathway_type: string
+          product_id: string
+          retailer: string | null
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_primary?: boolean
+          label?: string | null
+          metadata?: Json | null
+          pathway_type: string
+          product_id: string
+          retailer?: string | null
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_primary?: boolean
+          label?: string | null
+          metadata?: Json | null
+          pathway_type?: string
+          product_id?: string
+          retailer?: string | null
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_pathways_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      retail_listings: {
+        Row: {
+          affiliate_url: string | null
+          availability: string | null
+          created_at: string
+          currency: string | null
+          id: string
+          is_active: boolean
+          last_synced_at: string | null
+          price: number | null
+          product_id: string
+          product_url: string | null
+          rating: number | null
+          raw_data: Json | null
+          retailer: string
+          retailer_metadata: Json | null
+          retailer_product_id: string | null
+          review_count: number | null
+          updated_at: string
+        }
+        Insert: {
+          affiliate_url?: string | null
+          availability?: string | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          price?: number | null
+          product_id: string
+          product_url?: string | null
+          rating?: number | null
+          raw_data?: Json | null
+          retailer: string
+          retailer_metadata?: Json | null
+          retailer_product_id?: string | null
+          review_count?: number | null
+          updated_at?: string
+        }
+        Update: {
+          affiliate_url?: string | null
+          availability?: string | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          price?: number | null
+          product_id?: string
+          product_url?: string | null
+          rating?: number | null
+          raw_data?: Json | null
+          retailer?: string
+          retailer_metadata?: Json | null
+          retailer_product_id?: string | null
+          review_count?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retail_listings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       routines: {
         Row: {
@@ -223,15 +639,42 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -358,6 +801,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const

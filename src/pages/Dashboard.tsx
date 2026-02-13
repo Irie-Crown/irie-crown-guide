@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdminRole } from '@/hooks/useAdminRole';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +18,7 @@ import {
   ChevronRight,
   Crown,
   CheckCircle,
+  Shield,
 } from 'lucide-react';
 
 interface Profile {
@@ -46,6 +48,7 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   const { user, signOut, isAuthenticated, loading } = useAuth();
+  const { isAdmin } = useAdminRole();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -130,6 +133,12 @@ export default function Dashboard() {
             </span>
           </div>
           <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button variant="outline" className="gap-2" onClick={() => navigate('/admin/products')}>
+                <Shield className="h-4 w-4" />
+                Admin
+              </Button>
+            )}
             <Button variant="ghost" className="gap-2" onClick={handleSignOut}>
               <LogOut className="h-4 w-4" />
               Sign Out
