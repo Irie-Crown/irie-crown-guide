@@ -17,6 +17,7 @@ import {
   CheckCircle,
   ChevronRight,
   RefreshCw,
+  ShoppingBag,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -45,12 +46,37 @@ interface HairProfile {
   climate: string;
 }
 
+interface ScoredProduct {
+  product_id: string;
+  product_name: string;
+  product_brand: string | null;
+  overall_score: number;
+  moisture_score: number | null;
+  scalp_care_score: number | null;
+  curl_definition_score: number | null;
+  frizz_control_score: number | null;
+  strength_repair_score: number | null;
+}
+
+const SECTION_SUBSCORE: Record<string, string> = {
+  pre_wash: 'moisture_score',
+  cleanse: 'scalp_care_score',
+  condition: 'moisture_score',
+  style: 'curl_definition_score',
+  deep_conditioning: 'moisture_score',
+  scalp_care: 'scalp_care_score',
+  protective_styling: 'frizz_control_score',
+  clarifying: 'scalp_care_score',
+  protein_treatment: 'strength_repair_score',
+};
+
 export default function Results() {
   const [routine, setRoutine] = useState<RoutineData | null>(null);
   const [hairProfile, setHairProfile] = useState<HairProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState<'wash' | 'weekly' | 'monthly'>('wash');
+  const [scoredProducts, setScoredProducts] = useState<ScoredProduct[]>([]);
 
   const { user, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
@@ -59,8 +85,46 @@ export default function Results() {
   useEffect(() => {
     if (user) {
       fetchData();
+      fetchScoredProducts();
     }
   }, [user]);
+
+  const fetchScoredProducts = async () => {
+    if (!user) return;
+    try {
+      const { data: scores } = await supabase
+        .from('compatibility_scores')
+        .select('product_id, overall_score, moisture_score, scalp_care_score, curl_definition_score, frizz_control_score, strength_repair_score')
+        .eq('user_id', user.id)
+        .order('overall_score', { ascending: false });
+      if (!scores || scores.length === 0) return;
+      const productIds = scores.map(s => s.product_id);
+      const { data: products } = await supabase
+        .from('products')
+        .select('id, name, brand')
+        .in('id', productIds);
+      const productMap = new Map((products || []).map(p => [p.id, p]));
+      setScoredProducts(scores.map(s => ({
+        ...s,
+        product_name: productMap.get(s.product_id)?.name || 'Unknown',
+        product_brand: productMap.get(s.product_id)?.brand || null,
+      })));
+    } catch (e) {
+      console.error('Failed to fetch scored products:', e);
+    }
+  };
+
+  const getProductsForSection = (sectionKey: string): ScoredProduct[] => {
+    if (scoredProducts.length === 0) return [];
+    const scoreKey = SECTION_SUBSCORE[sectionKey] || 'overall_score';
+    return [...scoredProducts]
+      .sort((a, b) => {
+        const sa = (a as unknown as Record<string, unknown>)[scoreKey] as number ?? 0;
+        const sb = (b as unknown as Record<string, unknown>)[scoreKey] as number ?? 0;
+        return sb - sa;
+      })
+      .slice(0, 2);
+  };
 
   const fetchData = async () => {
     if (!user) return;
@@ -129,7 +193,6 @@ export default function Results() {
 
       const routineContent = response.data;
 
-      // Save the generated routine
       const { data: savedRoutine, error: saveError } = await supabase
         .from('routines')
         .insert({
@@ -203,20 +266,49 @@ export default function Results() {
 
     return (
       <div className="space-y-6">
-        {Object.entries(routineData).map(([key, value]) => (
-          <div key={key} className="space-y-2">
-            <h4 className="font-semibold text-foreground capitalize">
-              {key.replace(/_/g, ' ')}
-            </h4>
-            <div className="prose prose-sm max-w-none text-muted-foreground">
-              {typeof value === 'string' ? (
-                <ReactMarkdown>{value}</ReactMarkdown>
-              ) : (
-                <p>{JSON.stringify(value, null, 2)}</p>
+        {Object.entries(routineData).map(([key, value]) => {
+          const products = getProductsForSection(key);
+          return (
+            <div key={key} className="space-y-2">
+              <h4 className="font-semibold text-foreground capitalize">
+                {key.replace(/_/g, ' ')}
+              </h4>
+              <div className="prose prose-sm max-w-none text-muted-foreground">
+                {typeof value === 'string' ? (
+                  <ReactMarkdown>{value}</ReactMarkdown>
+                ) : (
+                  <p>{JSON.stringify(value, null, 2)}</p>
+                )}
+              </div>
+              {products.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-border/50">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-2 flex items-center gap-1">
+                    <ShoppingBag className="h-3 w-3" />
+                    Recommended Products
+                  </p>
+                  <div className="flex gap-2 flex-wrap">
+                    {products.map(p => (
+                      <button
+                        key={p.product_id}
+                        onClick={() => navigate(`/products/${p.product_id}`)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/5 hover:bg-primary/10 border border-primary/10 hover:border-primary/20 transition-colors text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-bold text-primary">{p.overall_score}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-xs font-medium text-foreground block truncate max-w-[120px]">{p.product_name}</span>
+                          {p.product_brand && <span className="text-[10px] text-muted-foreground">{p.product_brand}</span>}
+                        </div>
+                        <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   };

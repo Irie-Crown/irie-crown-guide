@@ -7,8 +7,9 @@ import {
   getCategoryLabel,
   getCategoryTooltip,
 } from '@/components/scoring/scoreCategories';
-import { Sparkles, Loader2, ChevronRight } from 'lucide-react';
+import { Sparkles, Loader2, ChevronRight, Leaf } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 
 interface ScoreData {
   product_id: string;
@@ -21,6 +22,7 @@ interface ScoreData {
   ingredient_safety_score: number | null;
   goal_alignment_score: number | null;
   performance_score: number | null;
+  score_breakdown?: unknown;
 }
 
 interface Product {
@@ -39,11 +41,58 @@ interface ProductScoreCardProps {
   onScore: (productId: string) => void;
 }
 
+interface IngredientChip {
+  ingredient: string;
+  score: number;
+  category: string;
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  moisture_score: 'Moisture',
+  strength_repair_score: 'Strength',
+  scalp_care_score: 'Scalp Care',
+  curl_definition_score: 'Curl Def.',
+  frizz_control_score: 'Frizz Control',
+  goal_alignment_score: 'Profile Match',
+  ingredient_safety_score: 'Safety',
+  performance_score: 'Performance',
+};
+
+function getTopContributors(score: ScoreData | undefined): IngredientChip[] {
+  if (!score?.score_breakdown) return [];
+  const breakdown = score.score_breakdown as {
+    subcategory_details?: Record<string, {
+      positive_contributors?: Array<{ ingredient: string; score: number }>;
+    }>;
+  };
+  if (!breakdown?.subcategory_details) return [];
+
+  const all: IngredientChip[] = [];
+  const seen = new Set<string>();
+
+  for (const [key, detail] of Object.entries(breakdown.subcategory_details)) {
+    if (!detail?.positive_contributors) continue;
+    for (const c of detail.positive_contributors) {
+      if (seen.has(c.ingredient)) continue;
+      seen.add(c.ingredient);
+      all.push({
+        ingredient: c.ingredient,
+        score: c.score,
+        category: CATEGORY_LABELS[key] || key.replace(/_score$/, '').replace(/_/g, ' '),
+      });
+    }
+  }
+
+  all.sort((a, b) => b.score - a.score);
+  return all.slice(0, 3);
+}
+
 export function ProductScoreCard({ product, score, isScoring, hairType, onScore }: ProductScoreCardProps) {
   const navigate = useNavigate();
 
   const healthCats = SCORE_CATEGORIES.filter(c => c.group === 'health');
   const styleCats = SCORE_CATEGORIES.filter(c => c.group === 'style');
+  const topContributors = getTopContributors(score);
 
   const getScoreValue = (key: string): number | null => {
     if (!score) return null;
@@ -144,6 +193,29 @@ export function ProductScoreCard({ product, score, isScoring, hairType, onScore 
             </div>
           </div>
         </CardContent>
+      )}
+
+      {/* Top Ingredient Contributors */}
+      {topContributors.length > 0 && (
+        <div className="px-4 pb-2">
+          <div className="flex flex-wrap gap-1">
+            {topContributors.map(c => (
+              <TooltipProvider key={c.ingredient} delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 bg-secondary/10 text-secondary rounded-full cursor-help hover:bg-secondary/20 transition-colors">
+                      <Leaf className="h-2.5 w-2.5" />
+                      {c.ingredient}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-[200px] text-xs">
+                    Boosts {c.category.toLowerCase()} (+{c.score})
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Actions */}

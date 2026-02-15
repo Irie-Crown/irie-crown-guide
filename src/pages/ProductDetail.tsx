@@ -19,6 +19,7 @@ import {
   Leaf,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { normalizeScoresAcrossProducts, type NormalizableScore } from '@/lib/normalizeScores';
 
 interface Product {
@@ -151,8 +152,28 @@ export default function ProductDetail() {
       });
 
       if (response.error) throw new Error(response.error.message);
-      setScore(response.data);
-      toast({ title: 'Score updated!' });
+      const newScore = response.data;
+      setScore(newScore);
+
+      // Update allScores so normalization recalculates immediately
+      setAllScores(prev => {
+        const next = new Map(prev);
+        next.set(id, {
+          product_id: id,
+          overall_score: newScore.overall_score,
+          moisture_score: newScore.moisture_score,
+          scalp_care_score: newScore.scalp_care_score,
+          curl_definition_score: newScore.curl_definition_score,
+          frizz_control_score: newScore.frizz_control_score,
+          strength_repair_score: newScore.strength_repair_score,
+          ingredient_safety_score: newScore.ingredient_safety_score,
+          goal_alignment_score: newScore.goal_alignment_score,
+          performance_score: newScore.performance_score,
+        } as NormalizableScore);
+        return next;
+      });
+
+      toast({ title: 'Score updated!', description: `Overall match: ${newScore.overall_score}/100` });
     } catch (error) {
       toast({
         title: 'Scoring failed',
@@ -293,10 +314,19 @@ export default function ProductDetail() {
                     {contributors.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-1.5 ml-0.5">
                         {contributors.map(c => (
-                          <span key={c.ingredient} className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 bg-secondary/10 text-secondary rounded-full">
-                            <Leaf className="h-2.5 w-2.5" />
-                            {c.ingredient}
-                          </span>
+                          <TooltipProvider key={c.ingredient} delayDuration={200}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 bg-secondary/10 text-secondary rounded-full cursor-help hover:bg-secondary/20 transition-colors">
+                                  <Leaf className="h-2.5 w-2.5" />
+                                  {c.ingredient}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-[220px] text-xs">
+                                Boosts {getCategoryLabel(cat, hairType).toLowerCase()} (+{c.score})
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         ))}
                       </div>
                     )}
@@ -329,10 +359,19 @@ export default function ProductDetail() {
                     {contributors.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-1.5 ml-0.5">
                         {contributors.map(c => (
-                          <span key={c.ingredient} className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 bg-secondary/10 text-secondary rounded-full">
-                            <Leaf className="h-2.5 w-2.5" />
-                            {c.ingredient}
-                          </span>
+                          <TooltipProvider key={c.ingredient} delayDuration={200}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 bg-secondary/10 text-secondary rounded-full cursor-help hover:bg-secondary/20 transition-colors">
+                                  <Leaf className="h-2.5 w-2.5" />
+                                  {c.ingredient}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-[220px] text-xs">
+                                Boosts {getCategoryLabel(cat, hairType).toLowerCase()} (+{c.score})
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         ))}
                       </div>
                     )}
