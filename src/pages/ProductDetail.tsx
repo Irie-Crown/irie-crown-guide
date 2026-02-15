@@ -7,18 +7,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScoreBar } from '@/components/scoring/ScoreDisplay';
 import {
+  SCORE_CATEGORIES,
+  getCategoryLabel,
+  getCategoryTooltip,
+} from '@/components/scoring/scoreCategories';
+import {
   Sparkles,
   ArrowLeft,
   Loader2,
   ExternalLink,
-  ShieldCheck,
-  Target,
-  Zap,
-  Droplets,
   Leaf,
-  Wind,
-  FlaskConical,
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface Product {
   id: string;
@@ -27,6 +27,16 @@ interface Product {
   category: string | null;
   description: string | null;
   image_urls: string[] | null;
+}
+
+interface IngredientContribution {
+  ingredient: string;
+  score: number;
+}
+
+interface SubcategoryDetail {
+  score: number;
+  positive_contributors: IngredientContribution[];
 }
 
 interface ScoreData {
@@ -39,7 +49,13 @@ interface ScoreData {
   ingredient_safety_score: number | null;
   goal_alignment_score: number | null;
   performance_score: number | null;
-  score_breakdown: unknown;
+  score_breakdown: {
+    coverage_ratio?: number;
+    avg_confidence?: number;
+    matched_count?: number;
+    total_count?: number;
+    subcategory_details?: Record<string, SubcategoryDetail>;
+  } | null;
   score_explanation: string | null;
 }
 
@@ -56,6 +72,7 @@ export default function ProductDetail() {
   const [product, setProduct] = useState<Product | null>(null);
   const [score, setScore] = useState<ScoreData | null>(null);
   const [pathways, setPathways] = useState<PurchasePathway[]>([]);
+  const [hairType, setHairType] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isScoring, setIsScoring] = useState(false);
 
@@ -72,17 +89,26 @@ export default function ProductDetail() {
     setIsLoading(true);
 
     try {
-      const queries = [
-        supabase.from('products').select('id, name, brand, category, description, image_urls').eq('id', id).single(),
-        supabase.from('purchase_pathways').select('id, url, retailer, label, is_primary').eq('product_id', id).eq('is_active', true),
-      ];
+      const productQuery = supabase.from('products').select('id, name, brand, category, description, image_urls').eq('id', id).single();
+      const pathwayQuery = supabase.from('purchase_pathways').select('id, url, retailer, label, is_primary').eq('product_id', id).eq('is_active', true);
+      const profileQuery = user
+        ? supabase.from('hair_profiles').select('hair_type').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).maybeSingle()
+        : null;
 
-      const [productRes, pathwayRes] = await Promise.all(queries);
+      const [productRes, pathwayRes, profileRes] = await Promise.all([
+        productQuery,
+        pathwayQuery,
+        profileQuery,
+      ]);
+
       if (productRes.error) throw productRes.error;
-      setProduct(productRes.data as Product);
-      setPathways((pathwayRes.data as PurchasePathway[]) || []);
+      setProduct(productRes.data);
+      setPathways(pathwayRes.data || []);
 
-      // Fetch score if user is logged in
+      if (profileRes?.data?.hair_type) {
+        setHairType(profileRes.data.hair_type);
+      }
+
       if (user) {
         const { data: scoreData } = await supabase
           .from('compatibility_scores')
@@ -91,7 +117,7 @@ export default function ProductDetail() {
           .eq('user_id', user.id)
           .maybeSingle();
 
-        if (scoreData) setScore(scoreData);
+        if (scoreData) setScore(scoreData as unknown as ScoreData);
       }
     } catch (error) {
       toast({ title: 'Product not found', variant: 'destructive' });
@@ -134,16 +160,19 @@ export default function ProductDetail() {
 
   if (!product) return null;
 
-  const scoreCategories = score ? [
-    { label: 'Moisture & Hydration', score: score.moisture_score ?? 0, icon: Droplets },
-    { label: 'Scalp Care', score: score.scalp_care_score ?? 0, icon: Leaf },
-    { label: 'Curl Definition', score: score.curl_definition_score ?? 0, icon: Wind },
-    { label: 'Frizz Control', score: score.frizz_control_score ?? 0, icon: Sparkles },
-    { label: 'Strength & Repair', score: score.strength_repair_score ?? 0, icon: FlaskConical },
-    { label: 'Ingredient Safety', score: score.ingredient_safety_score ?? 0, icon: ShieldCheck },
-    { label: 'Goal Alignment', score: score.goal_alignment_score ?? 0, icon: Target },
-    { label: 'Performance', score: score.performance_score ?? 0, icon: Zap },
-  ] : [];
+  const healthCats = SCORE_CATEGORIES.filter(c => c.group === 'health');
+  const styleCats = SCORE_CATEGORIES.filter(c => c.group === 'style');
+
+  const getScoreValue = (key: string): number | null => {
+    if (!score) return null;
+    return (score as unknown as Record<string, unknown>)[key] as number | null;
+  };
+
+  const getContributors = (key: string): IngredientContribution[] => {
+    const details = score?.score_breakdown?.subcategory_details;
+    if (!details || !details[key]) return [];
+    return details[key].positive_contributors || [];
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
@@ -191,9 +220,9 @@ export default function ProductDetail() {
               <div className="flex items-center gap-2 mt-1">
                 {product.brand && <span className="text-muted-foreground">{product.brand}</span>}
                 {product.category && (
-                  <span className="text-xs px-2 py-0.5 bg-muted rounded-full text-muted-foreground">
+                  <Badge variant="secondary" className="text-xs">
                     {product.category}
-                  </span>
+                  </Badge>
                 )}
               </div>
               {product.description && (
@@ -212,24 +241,74 @@ export default function ProductDetail() {
           </Card>
         )}
 
-        {/* Score Breakdown */}
+        {/* Score Breakdown - Health & Safety */}
         {score && (
           <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="font-display">Compatibility Breakdown</CardTitle>
-              <CardDescription>How this product matches your hair profile</CardDescription>
+            <CardHeader className="pb-3">
+              <CardTitle className="font-display text-base">Health & Safety</CardTitle>
+              <CardDescription>Clinical and ingredient safety metrics</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-2 gap-4">
-                {scoreCategories.map(cat => (
-                  <div key={cat.label} className="flex items-center gap-3">
-                    <cat.icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <div className="flex-1">
-                      <ScoreBar label={cat.label} score={cat.score} />
-                    </div>
+            <CardContent className="space-y-4">
+              {healthCats.map(cat => {
+                const val = getScoreValue(cat.key);
+                if (val == null) return null;
+                const contributors = getContributors(cat.key);
+                return (
+                  <div key={cat.key}>
+                    <ScoreBar
+                      label={getCategoryLabel(cat, hairType)}
+                      score={val}
+                      tooltip={getCategoryTooltip(cat, hairType)}
+                    />
+                    {contributors.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-1.5 ml-0.5">
+                        {contributors.map(c => (
+                          <span key={c.ingredient} className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 bg-secondary/10 text-secondary rounded-full">
+                            <Leaf className="h-2.5 w-2.5" />
+                            {c.ingredient}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Score Breakdown - Style & Utility */}
+        {score && (
+          <Card className="mb-6">
+            <CardHeader className="pb-3">
+              <CardTitle className="font-display text-base">Style & Utility</CardTitle>
+              <CardDescription>How well this product serves your styling needs</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {styleCats.map(cat => {
+                const val = getScoreValue(cat.key);
+                if (val == null) return null;
+                const contributors = getContributors(cat.key);
+                return (
+                  <div key={cat.key}>
+                    <ScoreBar
+                      label={getCategoryLabel(cat, hairType)}
+                      score={val}
+                      tooltip={getCategoryTooltip(cat, hairType)}
+                    />
+                    {contributors.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-1.5 ml-0.5">
+                        {contributors.map(c => (
+                          <span key={c.ingredient} className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 bg-secondary/10 text-secondary rounded-full">
+                            <Leaf className="h-2.5 w-2.5" />
+                            {c.ingredient}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </CardContent>
           </Card>
         )}
@@ -245,19 +324,19 @@ export default function ProductDetail() {
                 <div>
                   <span className="text-muted-foreground">Ingredients Analyzed</span>
                   <p className="font-semibold text-foreground">
-                    {(score.score_breakdown as Record<string, number>).matched_count ?? 0} / {(score.score_breakdown as Record<string, number>).total_count ?? 0}
+                    {score.score_breakdown.matched_count ?? 0} / {score.score_breakdown.total_count ?? 0}
                   </p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Coverage</span>
                   <p className="font-semibold text-foreground">
-                    {(score.score_breakdown as Record<string, number>).coverage_ratio ?? 0}%
+                    {score.score_breakdown.coverage_ratio ?? 0}%
                   </p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Confidence</span>
                   <p className="font-semibold text-foreground">
-                    {(score.score_breakdown as Record<string, number>).avg_confidence ?? 0}%
+                    {score.score_breakdown.avg_confidence ?? 0}%
                   </p>
                 </div>
               </div>

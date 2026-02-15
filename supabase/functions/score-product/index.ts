@@ -8,6 +8,7 @@ const corsHeaders = {
 
 interface IngredientRule {
   normalized_name: string;
+  ingredient_name: string;
   category: string | null;
   porosity_low_score: number;
   porosity_medium_score: number;
@@ -40,6 +41,20 @@ interface HairProfile {
   scalp_condition: string;
   climate: string;
   hair_type: string | null;
+}
+
+/** Per-ingredient contribution to a subcategory */
+interface IngredientContribution {
+  ingredient: string;
+  score: number; // weighted contribution
+}
+
+/** Per-subcategory breakdown with ingredient-level detail */
+interface SubcategoryDetail {
+  score: number;
+  /** Ingredients that contributed positively (sorted by impact desc) */
+  positive_contributors: IngredientContribution[];
+  // Future: negative_contributors will go here for scores < 50
 }
 
 interface ScoreResult {
@@ -104,6 +119,63 @@ function clampScore(score: number, min = 0, max = 100): number {
   return Math.round(Math.max(min, Math.min(max, score)));
 }
 
+/**
+ * Normalize a raw accumulated score to a 50–100 range (positive-only mode).
+ * 
+ * In positive-only mode, 50 is the baseline (neutral) and scores rise toward 100
+ * based on positive ingredient contributions. In the future, negative contributions
+ * will be able to pull scores below 50.
+ * 
+ * @param raw - accumulated weighted score from ingredients
+ * @param maxRaw - theoretical maximum raw score (5 * n where n = matched ingredients)
+ * @param allowBelow50 - if false (default), floor is 50; if true, floor is 0
+ */
+function normalizeScore(raw: number, maxRaw: number, allowBelow50 = false): number {
+  if (maxRaw <= 0) return 50;
+  
+  // Map raw to a 0-50 bonus range (positive contributions only for now)
+  const positiveRaw = Math.max(0, raw);
+  const bonus = (positiveRaw / maxRaw) * 50;
+  
+  const score = 50 + bonus;
+  
+  // Future: when allowBelow50 is true, negative raw values will subtract from 50
+  // const penalty = allowBelow50 ? (Math.abs(Math.min(0, raw)) / maxRaw) * 50 : 0;
+  // const score = 50 + bonus - penalty;
+  
+  return clampScore(score);
+}
+
+/**
+ * Track which ingredients contribute positively to a given raw score accessor.
+ * Returns top contributors sorted by impact descending.
+ */
+function getPositiveContributors(
+  orderedRules: IngredientRule[],
+  totalIngredientCount: number,
+  accessor: (rule: IngredientRule) => number,
+  topN = 3
+): IngredientContribution[] {
+  const contributions: IngredientContribution[] = [];
+  
+  for (let i = 0; i < orderedRules.length; i++) {
+    const rule = orderedRules[i];
+    const positionWeight = Math.max(0.3, 1.0 - (i / totalIngredientCount) * 0.7);
+    const rawVal = accessor(rule);
+    const weighted = rawVal * positionWeight * rule.confidence;
+    
+    if (weighted > 0) {
+      contributions.push({
+        ingredient: rule.ingredient_name,
+        score: Math.round(weighted * 100) / 100,
+      });
+    }
+  }
+  
+  contributions.sort((a, b) => b.score - a.score);
+  return contributions.slice(0, topN);
+}
+
 function calculateScores(
   rules: IngredientRule[],
   profile: HairProfile,
@@ -111,7 +183,6 @@ function calculateScores(
 ): ScoreResult {
   const concerns = profile.hair_concerns || [];
   
-  // Accumulate raw scores across all matched ingredients
   let totalMoisture = 0;
   let totalProtein = 0;
   let totalScalpHealth = 0;
@@ -126,10 +197,8 @@ function calculateScores(
   let totalIrritation = 0;
   let totalConfidence = 0;
   
-  // Weight ingredients by position (first ingredients have higher concentration)
   for (let i = 0; i < rules.length; i++) {
     const rule = rules[i];
-    // Position weight: first ingredient = 1.0, decays to 0.3 for later ones
     const positionWeight = Math.max(0.3, 1.0 - (i / totalIngredientCount) * 0.7);
     const w = positionWeight * rule.confidence;
     
@@ -150,28 +219,25 @@ function calculateScores(
   
   const n = rules.length || 1;
   const avgConfidence = totalConfidence / n;
-  
-  // Normalize raw scores to 0-100 scale
-  // Raw scores range roughly -5*n to +5*n, normalize by dividing by max possible
   const maxRaw = 5 * n;
-  const norm = (raw: number) => clampScore(50 + (raw / maxRaw) * 50);
   
-  const moistureScore = norm(totalMoisture);
-  const strengthRepairScore = norm(totalProtein);
-  const scalpCareScore = norm(totalScalpHealth);
-  const curlDefScore = norm(totalCurlDef);
-  const frizzControlScore = norm(totalFrizzControl);
+  // Normalize all scores to 50–100 (positive-only for now)
+  const moistureScore = normalizeScore(totalMoisture, maxRaw);
+  const strengthRepairScore = normalizeScore(totalProtein, maxRaw);
+  const scalpCareScore = normalizeScore(totalScalpHealth, maxRaw);
+  const curlDefScore = normalizeScore(totalCurlDef, maxRaw);
+  const frizzControlScore = normalizeScore(totalFrizzControl, maxRaw);
   
-  // Safety score: penalized by risks (buildup, drying, irritation)
+  // Safety: start at 100, penalized by risks. Floor at 50 for now.
   const maxRisk = 5 * n;
   const safetyPenalty = ((totalBuildup + totalDrying + totalIrritation) / (3 * maxRisk)) * 50;
-  const ingredientSafetyScore = clampScore(100 - safetyPenalty);
+  const ingredientSafetyScore = clampScore(Math.max(50, 100 - safetyPenalty));
   
-  // Goal alignment: combination of porosity fit + density fit + concern impact + climate
+  // Goal alignment
   const goalRaw = totalPorosityFit + totalDensityFit + totalConcernFit + totalClimateFit;
-  const goalAlignmentScore = norm(goalRaw);
+  const goalAlignmentScore = normalizeScore(goalRaw, maxRaw * 4); // 4 components
   
-  // Performance: weighted average of subcategory scores
+  // Performance: weighted composite
   const performanceScore = clampScore(
     moistureScore * 0.25 +
     curlDefScore * 0.2 +
@@ -180,11 +246,11 @@ function calculateScores(
     scalpCareScore * 0.2
   );
   
-  // Coverage penalty: if we only matched a small fraction of ingredients
+  // Coverage penalty
   const coverageRatio = rules.length / totalIngredientCount;
   const coveragePenalty = coverageRatio < 0.5 ? (1 - coverageRatio) * 10 : 0;
   
-  // Overall score: weighted combination
+  // Overall score
   const overallScore = clampScore(
     ingredientSafetyScore * 0.25 +
     goalAlignmentScore * 0.25 +
@@ -194,16 +260,54 @@ function calculateScores(
     coveragePenalty
   );
   
-  // Build explanation
+  // --- Per-subcategory ingredient contributors (positive only for now) ---
+  const subcategory_details: Record<string, SubcategoryDetail> = {
+    moisture_score: {
+      score: moistureScore,
+      positive_contributors: getPositiveContributors(rules, totalIngredientCount, r => r.moisture_score),
+    },
+    strength_repair_score: {
+      score: strengthRepairScore,
+      positive_contributors: getPositiveContributors(rules, totalIngredientCount, r => r.protein_score),
+    },
+    scalp_care_score: {
+      score: scalpCareScore,
+      positive_contributors: getPositiveContributors(rules, totalIngredientCount, r => r.scalp_health_score),
+    },
+    curl_definition_score: {
+      score: curlDefScore,
+      positive_contributors: getPositiveContributors(rules, totalIngredientCount, r => r.curl_definition_score),
+    },
+    frizz_control_score: {
+      score: frizzControlScore,
+      positive_contributors: getPositiveContributors(rules, totalIngredientCount, r => r.frizz_control_score),
+    },
+    ingredient_safety_score: {
+      score: ingredientSafetyScore,
+      positive_contributors: [], // Safety is inverse; contributors tracked differently later
+    },
+    goal_alignment_score: {
+      score: goalAlignmentScore,
+      positive_contributors: getPositiveContributors(
+        rules, totalIngredientCount,
+        r => getPorosityScore(r, profile.hair_porosity) + getDensityScore(r, profile.hair_density)
+      ),
+    },
+    performance_score: {
+      score: performanceScore,
+      positive_contributors: [], // Composite; contributors are in subcategories
+    },
+  };
+  
+  // Build explanation (positive-focused)
   const explanations: string[] = [];
   if (ingredientSafetyScore >= 80) explanations.push("Ingredients are generally safe for your hair type.");
-  else if (ingredientSafetyScore < 50) explanations.push("Some ingredients may be problematic — check buildup and drying risks.");
-  
   if (goalAlignmentScore >= 75) explanations.push("Good match for your porosity, density, and concerns.");
-  else if (goalAlignmentScore < 50) explanations.push("This product may not align well with your hair profile.");
+  if (moistureScore >= 75) explanations.push("Strong hydration support from the formula.");
+  if (scalpCareScore >= 75) explanations.push("Scalp-friendly ingredients present.");
   
   if (coverageRatio < 0.5) {
-    explanations.push(`Only ${Math.round(coverageRatio * 100)}% of ingredients have been analyzed. Score confidence is lower.`);
+    explanations.push(`Only ${Math.round(coverageRatio * 100)}% of ingredients analyzed — score confidence is lower.`);
   }
 
   return {
@@ -226,6 +330,7 @@ function calculateScores(
         drying: Math.round((totalDrying / maxRisk) * 100),
         irritation: Math.round((totalIrritation / maxRisk) * 100),
       },
+      subcategory_details,
     },
     score_explanation: explanations.join(" "),
     missing_ingredients: [],
@@ -238,7 +343,6 @@ serve(async (req) => {
   }
 
   try {
-    // === Auth middleware ===
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(
@@ -263,7 +367,6 @@ serve(async (req) => {
     }
 
     const userId = claimsData.claims.sub as string;
-    // === End auth middleware ===
 
     const body = await req.json();
     const { product_id } = body;
@@ -275,7 +378,6 @@ serve(async (req) => {
       );
     }
 
-    // Fetch hair profile, product ingredients, and ingredient rules in parallel
     const [profileRes, ingredientsRes] = await Promise.all([
       supabase
         .from('hair_profiles')
@@ -308,7 +410,6 @@ serve(async (req) => {
     const profile = profileRes.data as HairProfile;
     const ingredientData = ingredientsRes.data;
 
-    // Parse ingredient names from product
     let ingredientNames: string[] = [];
     if (ingredientData.parsed_ingredients && Array.isArray(ingredientData.parsed_ingredients)) {
       ingredientNames = (ingredientData.parsed_ingredients as Array<{ name?: string }>)
@@ -328,19 +429,16 @@ serve(async (req) => {
       );
     }
 
-    // Normalize and look up rules
     const normalizedNames = ingredientNames.map(normalizeIngredientName);
-    const { data: rules } = await supabase
+    const { data: dbRules } = await supabase
       .from('ingredient_rules')
       .select('*')
       .in('normalized_name', normalizedNames);
 
-    const matchedRules = rules || [];
+    const matchedRules = dbRules || [];
     const matchedNames = new Set(matchedRules.map((r: IngredientRule) => r.normalized_name));
     const missingIngredients = normalizedNames.filter(n => !matchedNames.has(n));
 
-    // Calculate deterministic scores
-    // Order matched rules by their position in the original ingredient list
     const orderedRules = normalizedNames
       .map(n => matchedRules.find((r: IngredientRule) => r.normalized_name === n))
       .filter(Boolean) as IngredientRule[];
@@ -348,7 +446,6 @@ serve(async (req) => {
     const scores = calculateScores(orderedRules, profile, ingredientNames.length);
     scores.missing_ingredients = missingIngredients;
 
-    // Upsert the score
     const { error: upsertError } = await supabase
       .from('compatibility_scores')
       .upsert({
@@ -373,10 +470,8 @@ serve(async (req) => {
 
     if (upsertError) {
       console.error("Failed to save score:", upsertError);
-      // Still return scores even if save fails
     }
 
-    // If there are missing ingredients, trigger rule discovery async (fire and forget)
     if (missingIngredients.length > 0) {
       const discoverUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/discover-ingredient-rules`;
       fetch(discoverUrl, {
