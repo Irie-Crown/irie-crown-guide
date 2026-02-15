@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ProductScoreCard } from '@/components/scoring/ProductScoreCard';
+import { normalizeScoresAcrossProducts } from '@/lib/normalizeScores';
 import { Sparkles, Search, Loader2, ArrowLeft } from 'lucide-react';
 
 interface Product {
@@ -127,14 +128,17 @@ export default function ProductCatalog() {
     }
   };
 
+  // Normalise scores so subscores spread across 50-100 relative to each other
+  const normalizedScores = useMemo(() => normalizeScoresAcrossProducts(scores), [scores]);
+
   const filtered = products.filter(p => {
     const q = search.toLowerCase();
     return !q || p.name.toLowerCase().includes(q) || (p.brand?.toLowerCase().includes(q));
   });
 
   const sorted = [...filtered].sort((a, b) => {
-    const sa = scores.get(a.id)?.overall_score ?? -1;
-    const sb = scores.get(b.id)?.overall_score ?? -1;
+    const sa = normalizedScores.get(a.id)?.overall_score ?? -1;
+    const sb = normalizedScores.get(b.id)?.overall_score ?? -1;
     return sb - sa;
   });
 
@@ -189,7 +193,7 @@ export default function ProductCatalog() {
               <ProductScoreCard
                 key={product.id}
                 product={product}
-                score={scores.get(product.id)}
+                score={normalizedScores.get(product.id)}
                 isScoring={scoringId === product.id}
                 hairType={hairType}
                 onScore={scoreProduct}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,6 +19,7 @@ import {
   Leaf,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { normalizeScoresAcrossProducts, type NormalizableScore } from '@/lib/normalizeScores';
 
 interface Product {
   id: string;
@@ -71,6 +72,7 @@ export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [score, setScore] = useState<ScoreData | null>(null);
+  const [allScores, setAllScores] = useState<Map<string, NormalizableScore>>(new Map());
   const [pathways, setPathways] = useState<PurchasePathway[]>([]);
   const [hairType, setHairType] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -110,14 +112,26 @@ export default function ProductDetail() {
       }
 
       if (user) {
-        const { data: scoreData } = await supabase
-          .from('compatibility_scores')
-          .select('overall_score, moisture_score, scalp_care_score, curl_definition_score, frizz_control_score, strength_repair_score, ingredient_safety_score, goal_alignment_score, performance_score, score_breakdown, score_explanation')
-          .eq('product_id', id)
-          .eq('user_id', user.id)
-          .maybeSingle();
+        const [scoreRes, allScoreRes] = await Promise.all([
+          supabase
+            .from('compatibility_scores')
+            .select('overall_score, moisture_score, scalp_care_score, curl_definition_score, frizz_control_score, strength_repair_score, ingredient_safety_score, goal_alignment_score, performance_score, score_breakdown, score_explanation')
+            .eq('product_id', id)
+            .eq('user_id', user.id)
+            .maybeSingle(),
+          supabase
+            .from('compatibility_scores')
+            .select('product_id, overall_score, moisture_score, scalp_care_score, curl_definition_score, frizz_control_score, strength_repair_score, ingredient_safety_score, goal_alignment_score, performance_score')
+            .eq('user_id', user.id),
+        ]);
 
-        if (scoreData) setScore(scoreData as unknown as ScoreData);
+        if (scoreRes.data) setScore(scoreRes.data as unknown as ScoreData);
+
+        if (allScoreRes.data) {
+          const map = new Map<string, NormalizableScore>();
+          allScoreRes.data.forEach(s => map.set(s.product_id, s as NormalizableScore));
+          setAllScores(map);
+        }
       }
     } catch (error) {
       toast({ title: 'Product not found', variant: 'destructive' });
@@ -150,6 +164,10 @@ export default function ProductDetail() {
     }
   };
 
+  // Normalize scores relative to all scored products (must be before early returns)
+  const normalizedScores = useMemo(() => normalizeScoresAcrossProducts(allScores), [allScores]);
+  const normalizedCurrent = id ? normalizedScores.get(id) : undefined;
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -165,7 +183,16 @@ export default function ProductDetail() {
 
   const getScoreValue = (key: string): number | null => {
     if (!score) return null;
+    if (normalizedCurrent) {
+      const normed = (normalizedCurrent as unknown as Record<string, unknown>)[key] as number | null;
+      if (normed != null) return normed;
+    }
     return (score as unknown as Record<string, unknown>)[key] as number | null;
+  };
+
+  const getOverallScore = (): number => {
+    if (normalizedCurrent) return normalizedCurrent.overall_score;
+    return score?.overall_score ?? 0;
   };
 
   const getContributors = (key: string): IngredientContribution[] => {
@@ -198,21 +225,24 @@ export default function ProductDetail() {
         {/* Product Header */}
         <div className="mb-8">
           <div className="flex items-start gap-4">
-            {score && (
-              <div className="w-20 h-20 rounded-2xl flex items-center justify-center flex-shrink-0 border-2" style={{
-                borderColor: score.overall_score >= 75 ? 'hsl(var(--secondary))' :
-                  score.overall_score >= 50 ? 'hsl(var(--primary))' : 'hsl(var(--destructive))',
-                backgroundColor: score.overall_score >= 75 ? 'hsl(var(--secondary) / 0.1)' :
-                  score.overall_score >= 50 ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--destructive) / 0.1)',
-              }}>
-                <span className={`text-2xl font-bold ${
-                  score.overall_score >= 75 ? 'text-secondary' :
-                  score.overall_score >= 50 ? 'text-primary' : 'text-destructive'
-                }`}>
-                  {score.overall_score}
-                </span>
-              </div>
-            )}
+            {score && (() => {
+              const os = getOverallScore();
+              return (
+                <div className="w-20 h-20 rounded-2xl flex items-center justify-center flex-shrink-0 border-2" style={{
+                  borderColor: os >= 75 ? 'hsl(var(--secondary))' :
+                    os >= 50 ? 'hsl(var(--primary))' : 'hsl(var(--destructive))',
+                  backgroundColor: os >= 75 ? 'hsl(var(--secondary) / 0.1)' :
+                    os >= 50 ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--destructive) / 0.1)',
+                }}>
+                  <span className={`text-2xl font-bold ${
+                    os >= 75 ? 'text-secondary' :
+                    os >= 50 ? 'text-primary' : 'text-destructive'
+                  }`}>
+                    {os}
+                  </span>
+                </div>
+              );
+            })()}
             <div>
               <h1 className="font-display text-2xl md:text-3xl font-semibold text-foreground">
                 {product.name}
