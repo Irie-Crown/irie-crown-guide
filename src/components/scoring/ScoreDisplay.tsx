@@ -1,4 +1,11 @@
 import { cn } from '@/lib/utils';
+import { Info } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface ScoreRingProps {
   score: number;
@@ -64,10 +71,11 @@ export function ScoreRing({ score, size = 'md', label, className }: ScoreRingPro
 interface ScoreBarProps {
   label: string;
   score: number;
+  tooltip?: string;
   className?: string;
 }
 
-export function ScoreBar({ label, score, className }: ScoreBarProps) {
+export function ScoreBar({ label, score, tooltip, className }: ScoreBarProps) {
   const getColor = (s: number) => {
     if (s >= 75) return 'bg-secondary';
     if (s >= 50) return 'bg-primary';
@@ -76,8 +84,22 @@ export function ScoreBar({ label, score, className }: ScoreBarProps) {
 
   return (
     <div className={cn('space-y-1', className)}>
-      <div className="flex justify-between text-sm">
-        <span className="text-muted-foreground">{label}</span>
+      <div className="flex justify-between items-center text-sm">
+        <span className="text-muted-foreground flex items-center gap-1">
+          {label}
+          {tooltip && (
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-3 w-3 text-muted-foreground/60 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-[240px] text-xs">
+                  {tooltip}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </span>
         <span className="font-medium text-foreground">{score}%</span>
       </div>
       <div className="h-2 bg-muted rounded-full overflow-hidden">
