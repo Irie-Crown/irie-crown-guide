@@ -251,10 +251,11 @@ function calculateScores(
   const coveragePenalty = coverageRatio < 0.5 ? (1 - coverageRatio) * 10 : 0;
   
   // Overall score
+  // Weights: Profile Match 33%, Safety 25%, Performance 22%, Moisture 10%, Scalp 10%
   const overallScore = clampScore(
+    goalAlignmentScore * 0.33 +
     ingredientSafetyScore * 0.25 +
-    goalAlignmentScore * 0.25 +
-    performanceScore * 0.3 +
+    performanceScore * 0.22 +
     moistureScore * 0.1 +
     scalpCareScore * 0.1 -
     coveragePenalty
