@@ -379,7 +379,7 @@ serve(async (req) => {
       );
     }
 
-    const [profileRes, ingredientsRes] = await Promise.all([
+    const [profileRes, ingredientsRes, productRes] = await Promise.all([
       supabase
         .from('hair_profiles')
         .select('id, hair_porosity, hair_density, hair_concerns, scalp_condition, climate, hair_type')
@@ -392,6 +392,11 @@ serve(async (req) => {
         .select('raw_ingredients_text, parsed_ingredients')
         .eq('product_id', product_id)
         .maybeSingle(),
+      supabase
+        .from('products')
+        .select('name, brand, category')
+        .eq('id', product_id)
+        .single(),
     ]);
 
     if (!profileRes.data) {

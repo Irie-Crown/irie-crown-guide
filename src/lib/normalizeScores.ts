@@ -35,6 +35,7 @@ export interface NormalizableScore {
   ingredient_safety_score: number | null;
   goal_alignment_score: number | null;
   performance_score: number | null;
+  score_breakdown?: unknown;
 }
 
 /**

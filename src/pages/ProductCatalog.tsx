@@ -28,6 +28,7 @@ interface ScoreData {
   ingredient_safety_score: number | null;
   goal_alignment_score: number | null;
   performance_score: number | null;
+  score_breakdown?: unknown;
 }
 
 export default function ProductCatalog() {
@@ -63,7 +64,7 @@ export default function ProductCatalog() {
         const [scoreRes, profileRes] = await Promise.all([
           supabase
             .from('compatibility_scores')
-            .select('product_id, overall_score, moisture_score, scalp_care_score, curl_definition_score, frizz_control_score, strength_repair_score, ingredient_safety_score, goal_alignment_score, performance_score')
+            .select('product_id, overall_score, moisture_score, scalp_care_score, curl_definition_score, frizz_control_score, strength_repair_score, ingredient_safety_score, goal_alignment_score, performance_score, score_breakdown')
             .eq('user_id', user.id),
           supabase
             .from('hair_profiles')
@@ -116,7 +117,7 @@ export default function ProductCatalog() {
         return next;
       });
 
-      toast({ title: 'Score calculated!', description: `Overall: ${scoreData.overall_score}/100` });
+      toast({ title: 'Score updated!', description: 'Product compatibility recalculated.' });
     } catch (error) {
       toast({
         title: 'Scoring failed',
