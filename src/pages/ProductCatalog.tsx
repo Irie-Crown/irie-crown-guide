@@ -4,17 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ScoreBar } from '@/components/scoring/ScoreDisplay';
-import {
-  Sparkles,
-  Search,
-  Loader2,
-  ChevronRight,
-  ArrowLeft,
-  Filter,
-} from 'lucide-react';
+import { ProductScoreCard } from '@/components/scoring/ProductScoreCard';
+import { Sparkles, Search, Loader2, ArrowLeft } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -43,6 +35,7 @@ export default function ProductCatalog() {
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [scoringId, setScoringId] = useState<string | null>(null);
+  const [hairType, setHairType] = useState<string | null>(null);
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -64,17 +57,30 @@ export default function ProductCatalog() {
       if (error) throw error;
       setProducts(data || []);
 
-      // Fetch existing scores for this user
       if (user) {
-        const { data: scoreData } = await supabase
-          .from('compatibility_scores')
-          .select('product_id, overall_score, moisture_score, scalp_care_score, curl_definition_score, frizz_control_score, strength_repair_score, ingredient_safety_score, goal_alignment_score, performance_score')
-          .eq('user_id', user.id);
+        // Fetch scores and hair profile in parallel
+        const [scoreRes, profileRes] = await Promise.all([
+          supabase
+            .from('compatibility_scores')
+            .select('product_id, overall_score, moisture_score, scalp_care_score, curl_definition_score, frizz_control_score, strength_repair_score, ingredient_safety_score, goal_alignment_score, performance_score')
+            .eq('user_id', user.id),
+          supabase
+            .from('hair_profiles')
+            .select('hair_type')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+        ]);
 
-        if (scoreData) {
+        if (scoreRes.data) {
           const map = new Map<string, ScoreData>();
-          scoreData.forEach(s => map.set(s.product_id, s));
+          scoreRes.data.forEach(s => map.set(s.product_id, s));
           setScores(map);
+        }
+
+        if (profileRes.data?.hair_type) {
+          setHairType(profileRes.data.hair_type);
         }
       }
     } catch (error) {
@@ -126,7 +132,6 @@ export default function ProductCatalog() {
     return !q || p.name.toLowerCase().includes(q) || (p.brand?.toLowerCase().includes(q));
   });
 
-  // Sort: scored products first (by score desc), then unscored
   const sorted = [...filtered].sort((a, b) => {
     const sa = scores.get(a.id)?.overall_score ?? -1;
     const sb = scores.get(b.id)?.overall_score ?? -1;
@@ -150,7 +155,7 @@ export default function ProductCatalog() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-5xl">
+      <main className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Search */}
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -179,99 +184,17 @@ export default function ProductCatalog() {
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {sorted.map(product => {
-              const score = scores.get(product.id);
-              const isScoring = scoringId === product.id;
-
-              return (
-                <Card key={product.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-4">
-                      {/* Score Circle */}
-                      <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 border-2" style={{
-                        borderColor: score ? (
-                          score.overall_score >= 75 ? 'hsl(var(--secondary))' :
-                          score.overall_score >= 50 ? 'hsl(var(--primary))' :
-                          'hsl(var(--destructive))'
-                        ) : 'hsl(var(--border))',
-                        backgroundColor: score ? (
-                          score.overall_score >= 75 ? 'hsl(var(--secondary) / 0.1)' :
-                          score.overall_score >= 50 ? 'hsl(var(--primary) / 0.1)' :
-                          'hsl(var(--destructive) / 0.1)'
-                        ) : 'hsl(var(--muted))',
-                      }}>
-                        {score ? (
-                          <span className={`text-lg font-bold ${
-                            score.overall_score >= 75 ? 'text-secondary' :
-                            score.overall_score >= 50 ? 'text-primary' :
-                            'text-destructive'
-                          }`}>
-                            {score.overall_score}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                      </div>
-
-                      {/* Product Info */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground truncate">{product.name}</h3>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          {product.brand && (
-                            <span className="text-sm text-muted-foreground">{product.brand}</span>
-                          )}
-                          {product.category && (
-                            <span className="text-xs px-2 py-0.5 bg-muted rounded-full text-muted-foreground">
-                              {product.category}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Score Bars */}
-                        {score && (
-                          <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-3">
-                            <ScoreBar label="Moisture" score={score.moisture_score ?? 0} />
-                            <ScoreBar label="Scalp Care" score={score.scalp_care_score ?? 0} />
-                            <ScoreBar label="Curl Definition" score={score.curl_definition_score ?? 0} />
-                            <ScoreBar label="Frizz Control" score={score.frizz_control_score ?? 0} />
-                            <ScoreBar label="Strength" score={score.strength_repair_score ?? 0} />
-                            <ScoreBar label="Safety" score={score.ingredient_safety_score ?? 0} />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex flex-col gap-2 flex-shrink-0">
-                        <Button
-                          size="sm"
-                          variant={score ? 'outline' : 'default'}
-                          onClick={() => scoreProduct(product.id)}
-                          disabled={isScoring}
-                          className="gap-1"
-                        >
-                          {isScoring ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Sparkles className="h-3 w-3" />
-                          )}
-                          {score ? 'Rescore' : 'Score'}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => navigate(`/products/${product.id}`)}
-                          className="gap-1"
-                        >
-                          Details
-                          <ChevronRight className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sorted.map(product => (
+              <ProductScoreCard
+                key={product.id}
+                product={product}
+                score={scores.get(product.id)}
+                isScoring={scoringId === product.id}
+                hairType={hairType}
+                onScore={scoreProduct}
+              />
+            ))}
           </div>
         )}
       </main>
