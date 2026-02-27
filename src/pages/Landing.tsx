@@ -125,7 +125,7 @@ export default function Landing() {
                   Designed for you:
                 </p>
                 <div className="flex flex-wrap gap-3">
-                  {['3A-4C Hair Types', 'Science-Based', 'Culturally Affirming'].map((tag) => (
+                  {['All Hair Types', 'Science-Based', 'Culturally Affirming'].map((tag) => (
                     <span
                       key={tag}
                       className="px-3 py-1 bg-muted rounded-full text-sm text-muted-foreground"
