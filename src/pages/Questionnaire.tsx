@@ -12,6 +12,19 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Sparkles, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 
+import curlPattern1A from '@/assets/curl-patterns/1a.jpg';
+import curlPattern1B from '@/assets/curl-patterns/1b.jpg';
+import curlPattern1C from '@/assets/curl-patterns/1c.jpg';
+import curlPattern2A from '@/assets/curl-patterns/2a.jpg';
+import curlPattern2B from '@/assets/curl-patterns/2b.jpg';
+import curlPattern2C from '@/assets/curl-patterns/2c.jpg';
+import curlPattern3A from '@/assets/curl-patterns/3a.jpg';
+import curlPattern3B from '@/assets/curl-patterns/3b.jpg';
+import curlPattern3C from '@/assets/curl-patterns/3c.jpg';
+import curlPattern4A from '@/assets/curl-patterns/4a.jpg';
+import curlPattern4B from '@/assets/curl-patterns/4b.jpg';
+import curlPattern4C from '@/assets/curl-patterns/4c.jpg';
+
 const stepLabels = [
   'Hair Type',
   'Hair Details',
@@ -23,18 +36,18 @@ const stepLabels = [
 ];
 
 const curlPatternOptions = [
-  { value: '1A', label: '1A', description: 'Stick-straight, fine' },
-  { value: '1B', label: '1B', description: 'Straight with slight body' },
-  { value: '1C', label: '1C', description: 'Straight with some wave' },
-  { value: '2A', label: '2A', description: 'Loose, gentle waves' },
-  { value: '2B', label: '2B', description: 'Defined S-shaped waves' },
-  { value: '2C', label: '2C', description: 'Deep waves, almost curly' },
-  { value: '3A', label: '3A', description: 'Loose, big curls' },
-  { value: '3B', label: '3B', description: 'Bouncy ringlets' },
-  { value: '3C', label: '3C', description: 'Tight corkscrew curls' },
-  { value: '4A', label: '4A', description: 'Tight, springy coils' },
-  { value: '4B', label: '4B', description: 'Z-shaped coils' },
-  { value: '4C', label: '4C', description: 'Tightly packed coils' },
+  { value: '1A', label: '1A', description: 'Stick-straight, fine', imageUrl: curlPattern1A },
+  { value: '1B', label: '1B', description: 'Straight with slight body', imageUrl: curlPattern1B },
+  { value: '1C', label: '1C', description: 'Straight with some wave', imageUrl: curlPattern1C },
+  { value: '2A', label: '2A', description: 'Loose, gentle waves', imageUrl: curlPattern2A },
+  { value: '2B', label: '2B', description: 'Defined S-shaped waves', imageUrl: curlPattern2B },
+  { value: '2C', label: '2C', description: 'Deep waves, almost curly', imageUrl: curlPattern2C },
+  { value: '3A', label: '3A', description: 'Loose, big curls', imageUrl: curlPattern3A },
+  { value: '3B', label: '3B', description: 'Bouncy ringlets', imageUrl: curlPattern3B },
+  { value: '3C', label: '3C', description: 'Tight corkscrew curls', imageUrl: curlPattern3C },
+  { value: '4A', label: '4A', description: 'Tight, springy coils', imageUrl: curlPattern4A },
+  { value: '4B', label: '4B', description: 'Z-shaped coils', imageUrl: curlPattern4B },
+  { value: '4C', label: '4C', description: 'Tightly packed coils', imageUrl: curlPattern4C },
   { value: 'Skip', label: 'Skip / Not Sure', description: 'We\'ll use your other hair characteristics instead' },
 ];
 
