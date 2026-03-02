@@ -7,6 +7,7 @@ interface SelectionOption {
   label: string;
   description?: string;
   icon?: React.ReactNode;
+  imageUrl?: string;
 }
 
 interface SelectionGridProps {
@@ -70,6 +71,16 @@ export const SelectionGrid = React.memo(function SelectionGrid({
             {selected && (
               <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
                 <Check className="h-3 w-3 text-primary-foreground" />
+              </div>
+            )}
+            {option.imageUrl && (
+              <div className="mb-3 rounded-lg overflow-hidden aspect-square">
+                <img
+                  src={option.imageUrl}
+                  alt={option.label}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
               </div>
             )}
             {option.icon && (
