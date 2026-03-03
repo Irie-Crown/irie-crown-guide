@@ -25,6 +25,10 @@ import curlPattern4A from '@/assets/curl-patterns/4a.jpg';
 import curlPattern4B from '@/assets/curl-patterns/4b.jpg';
 import curlPattern4C from '@/assets/curl-patterns/4c.jpg';
 
+import densityLow from '@/assets/density/low.jpg';
+import densityMedium from '@/assets/density/medium.jpg';
+import densityHigh from '@/assets/density/high.jpg';
+
 const stepLabels = [
   'Hair Type',
   'Hair Details',
@@ -64,9 +68,9 @@ const porosityOptions = [
 ];
 
 const densityOptions = [
-  { value: 'Low', label: 'Low', description: 'Scalp easily visible' },
-  { value: 'Medium', label: 'Medium', description: 'Some scalp visible' },
-  { value: 'High', label: 'High', description: 'Scalp barely visible' },
+  { value: 'Low', label: 'Low', description: 'Scalp easily visible', imageUrl: densityLow },
+  { value: 'Medium', label: 'Medium', description: 'Some scalp visible', imageUrl: densityMedium },
+  { value: 'High', label: 'High', description: 'Scalp barely visible', imageUrl: densityHigh },
 ];
 
 const lengthOptions = [
