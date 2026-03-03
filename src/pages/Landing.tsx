@@ -96,7 +96,7 @@ export default function Landing() {
               </h1>
 
               <p className="text-lg md:text-xl text-muted-foreground max-w-lg">
-                AI-powered hair routines designed for textured hair. Get personalized 
+                AI-powered routines for every hair type. Get personalized 
                 recommendations based on your unique hair profile, health, and environment.
               </p>
 
