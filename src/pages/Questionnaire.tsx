@@ -29,6 +29,10 @@ import densityLow from '@/assets/density/low.jpg';
 import densityMedium from '@/assets/density/medium.jpg';
 import densityHigh from '@/assets/density/high.jpg';
 
+import textureFine from '@/assets/texture/fine.jpg';
+import textureMedium from '@/assets/texture/medium.jpg';
+import textureCoarse from '@/assets/texture/coarse.jpg';
+
 const stepLabels = [
   'Hair Type',
   'Hair Details',
@@ -56,9 +60,9 @@ const curlPatternOptions = [
 ];
 
 const textureOptions = [
-  { value: 'Fine', label: 'Fine', description: 'Thin individual strands' },
-  { value: 'Medium', label: 'Medium', description: 'Average strand thickness' },
-  { value: 'Coarse', label: 'Coarse', description: 'Thick individual strands' },
+  { value: 'Fine', label: 'Fine', description: 'Barely felt between fingers, wispy', imageUrl: textureFine },
+  { value: 'Medium', label: 'Medium', description: 'Noticeable but not rough, holds style well', imageUrl: textureMedium },
+  { value: 'Coarse', label: 'Coarse', description: 'Feels thick and wiry, resistant to damage', imageUrl: textureCoarse },
 ];
 
 const porosityOptions = [
